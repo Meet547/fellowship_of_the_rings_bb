@@ -99,7 +99,7 @@ export function EvidenceSection() {
         </div>
       </Reveal>
 
-      {/* diagram panel */}
+      {/* diagram panel — graph scales down to fit, swipes only on very small screens */}
       <Reveal delay={0.12}>
         <div
           id="evidence-panel"
@@ -107,9 +107,7 @@ export function EvidenceSection() {
           aria-labelledby={`tab-${tab}`}
           className="mt-7 overflow-hidden rounded-[20px] border border-linline bg-lav-deep"
         >
-          <div className="overflow-x-auto no-scrollbar">
-            <EvidenceGraph tab={tab} />
-          </div>
+          <ScaledEvidenceGraph tab={tab} />
         </div>
       </Reveal>
 
@@ -155,7 +153,56 @@ export function EvidenceSection() {
 
 const W = 880;
 const H = 380;
+const CANVAS_H = 400; // graph root is h-[400px] (svg is 380)
 const LINE_Y = 190;
+
+/**
+ * The graph is laid out on a fixed 880px canvas. Below 880px of available
+ * width it scales down proportionally so nodes/chips never clip; under 440px
+ * it stops shrinking and swipes horizontally instead.
+ */
+function ScaledEvidenceGraph({ tab }: { tab: TabId }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [cw, setCw] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setCw(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const ratio = cw ? cw / W : 1;
+  const scale = ratio >= 1 ? 1 : Math.max(ratio, 0.5);
+  const swipe = ratio < 0.5;
+
+  return (
+    <div
+      ref={ref}
+      className={cn(swipe ? "overflow-x-auto no-scrollbar" : "overflow-hidden")}
+    >
+      <div
+        className={cn("relative", !swipe && ratio > 1 && "mx-auto w-full max-w-[880px]")}
+        style={{ height: CANVAS_H * scale }}
+      >
+        <div
+          className="absolute left-0 top-0"
+          style={{
+            width: W,
+            height: CANVAS_H,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+        >
+          <EvidenceGraph tab={tab} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function EvidenceGraph({ tab }: { tab: TabId }) {
   const reduce = useReducedMotion();
@@ -184,7 +231,7 @@ function EvidenceGraph({ tab }: { tab: TabId }) {
   });
 
   return (
-    <div className="relative mx-auto h-[400px] w-[880px]">
+    <div className="relative h-[400px] w-[880px]">
       {/* connector lines */}
       <svg
         viewBox={`0 0 ${W} ${H}`}

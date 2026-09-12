@@ -32,3 +32,24 @@ Stage Summary:
 - Fixed: timeline tick overlap, connector line spans, mobile intake pill stacking, pill nowrap, clip heights
 - Verified via agent-browser at 1600/1920/390 widths: all sections render, tabs/mic/dropdowns/mobile-menu work, no console errors, lint clean
 - Full-page side-by-side vs reference confirms preserved visual rhythm
+
+---
+Task ID: 3
+Agent: main (Super Z)
+Task: Fix alignment issues reported by user (screenshots/cards misaligned, "I found someone" wrapping to two lines)
+
+Work Log:
+- Diagnosed via agent-browser at 1600/1280/1024/810/768/640/390 widths; user's viewport ~810px CSS
+- primitives.tsx: PillButton base class now shrink-0 + whitespace-nowrap (no pill button can wrap anywhere)
+- hero.tsx: intake form sm:w-auto sm:min-w-0 sm:flex-1 (form shrinks instead of squeezing button); container items-stretch on mobile; "I found someone" guaranteed one line at all widths
+- product-preview.tsx: dashboard top bar — case title whitespace-nowrap, search field hidden below lg, New search/bell/avatar shrink-0 (no more wrapping at 768-860px)
+- evidence-section.tsx: new ScaledEvidenceGraph wrapper (ResizeObserver) — 880px graph scales down proportionally below 880px (min 0.5, swipe only under 440px); fixes clipped "91% match" chip / POTENTIAL LEAD node at <1024px
+- guides.tsx: grid md:grid-cols-3 (was sm:2/lg:3 which left an orphan card at 768-1023px); "Read the guide" pinned via mt-auto — all buttons align across cards
+- feature-cards.tsx: mock slots get md:min-h-[390px] + justify-center; CTA buttons mt-auto — titles and buttons align across the two cards
+- two-sided.tsx: same pattern (md:min-h-[224px] slots, flex text blocks, mt-auto buttons); fixed a misnested-div regression during edit
+- diagram.tsx: typed Petal[] with optional name2 — removes 4 pre-existing TS errors, zero type errors in app src
+- Verified at 810/640/390/1600: hero button one line, dashboard top bar one line, evidence graph fully visible at all widths, all card rows title+button aligned; eslint clean
+
+Stage Summary:
+- All reported misalignments fixed with structural patterns (shrink-0/nowrap for buttons, min-h+justify-center for mock slots, mt-auto for CTAs, scale-to-fit for fixed-canvas diagrams)
+- No content changes; visual language untouched

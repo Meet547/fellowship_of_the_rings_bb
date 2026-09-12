@@ -54,12 +54,12 @@ export function Hero() {
           <motion.div
             {...fade(0.28)}
             id="intake"
-            className="mx-auto mt-9 flex max-w-[660px] flex-col items-center justify-center gap-3 sm:flex-row"
+            className="mx-auto mt-9 flex max-w-[660px] flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
             role="search"
             aria-label="Start an investigation"
           >
             <form
-              className="flex w-full flex-col gap-2 rounded-[28px] border border-linec/70 bg-lav-chip p-2 shadow-[inset_0_1px_2px_rgba(24,22,35,0.03)] sm:h-[54px] sm:flex-row sm:items-center sm:gap-1 sm:rounded-full sm:p-1.5 sm:pl-2"
+              className="flex w-full flex-col gap-2 rounded-[28px] border border-linec/70 bg-lav-chip p-2 shadow-[inset_0_1px_2px_rgba(24,22,35,0.03)] sm:h-[54px] sm:w-auto sm:min-w-0 sm:flex-1 sm:flex-row sm:items-center sm:gap-1 sm:rounded-full sm:p-1.5 sm:pl-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 document
@@ -100,13 +100,17 @@ export function Hero() {
               </div>
               <button
                 type="submit"
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-accent px-4 text-[14.5px] font-medium text-white transition-colors hover:bg-accent-deep"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-4 text-[14.5px] font-medium text-white transition-colors hover:bg-accent-deep"
               >
                 Start a search
                 <span aria-hidden="true">→</span>
               </button>
             </form>
-            <PillButton href="#two-sided" variant="outline" className="h-[54px] sm:px-6">
+            <PillButton
+              href="#two-sided"
+              variant="outline"
+              className="h-[54px] sm:px-6"
+            >
               I found someone
             </PillButton>
           </motion.div>

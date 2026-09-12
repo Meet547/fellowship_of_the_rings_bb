@@ -35,54 +35,56 @@ export function TwoSided() {
 
         <div className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2">
           {/* LOOKING FOR SOMEONE */}
-          <motion.article {...rise} className="overflow-hidden rounded-[20px] bg-lav-deep">
-            <div className="px-7 pt-8 sm:px-9 sm:pt-10">
-              <div
-                role="img"
-                aria-label="An active investigation with three leads"
-                className="rounded-xl border border-linec bg-surface p-4 shadow-[0_14px_36px_-12px_rgba(24,22,35,0.14)]"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">
-                    Your investigation
-                  </p>
-                  <span className="inline-flex h-6 items-center gap-1 rounded-full bg-accent-soft px-2 text-[10.5px] font-semibold text-accent">
-                    <Search className="h-3 w-3" /> Active
-                  </span>
-                </div>
-                <p className="mt-2 text-[15px] font-medium text-ink">
-                  Rahul Sharma · 17 · Mumbai
-                </p>
-                <ul className="mt-3 space-y-1.5 text-[12.5px] text-body">
-                  <li className="flex items-center gap-2">
-                    <MockCheck className="h-3.5 w-3.5" /> 12 sources searched
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <MockCheck className="h-3.5 w-3.5" /> 4 evidence items connected
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent-soft text-[8px] font-bold text-accent">
-                      3
+          <motion.article {...rise} className="flex h-full flex-col overflow-hidden rounded-[20px] bg-lav-deep">
+            <div className="flex justify-center px-7 pt-8 sm:px-9 sm:pt-10">
+              <div className="flex w-full flex-col justify-center md:min-h-[224px]">
+                <div
+                  role="img"
+                  aria-label="An active investigation with three leads"
+                  className="rounded-xl border border-linec bg-surface p-4 shadow-[0_14px_36px_-12px_rgba(24,22,35,0.14)]"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">
+                      Your investigation
+                    </p>
+                    <span className="inline-flex h-6 items-center gap-1 rounded-full bg-accent-soft px-2 text-[10.5px] font-semibold text-accent">
+                      <Search className="h-3 w-3" /> Active
                     </span>
-                    potential leads waiting for review
-                  </li>
-                </ul>
-                <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-lav-chip px-3 py-2 text-[11.5px] text-faint">
-                  <MapPin className="h-3 w-3" />
-                  Latest: found-person report · Surat · Aug 14
+                  </div>
+                  <p className="mt-2 text-[15px] font-medium text-ink">
+                    Rahul Sharma · 17 · Mumbai
+                  </p>
+                  <ul className="mt-3 space-y-1.5 text-[12.5px] text-body">
+                    <li className="flex items-center gap-2">
+                      <MockCheck className="h-3.5 w-3.5" /> 12 sources searched
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <MockCheck className="h-3.5 w-3.5" /> 4 evidence items connected
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent-soft text-[8px] font-bold text-accent">
+                        3
+                      </span>
+                      potential leads waiting for review
+                    </li>
+                  </ul>
+                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-lav-chip px-3 py-2 text-[11.5px] text-faint">
+                    <MapPin className="h-3 w-3" />
+                    Latest: found-person report · Surat · Aug 14
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="px-7 pb-8 pt-7 sm:px-9 sm:pb-10">
+            <div className="flex flex-1 flex-col px-7 pb-8 pt-7 sm:px-9 sm:pb-10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-faint">
                 Looking for someone
               </p>
               <h3 className="mt-2.5 max-w-[360px] text-balance text-[24px] font-medium leading-[1.2] tracking-[-0.02em] text-ink md:text-[27px]">
                 Describe who you&rsquo;re looking for and let KHOJ investigate.
               </h3>
-              <PillButton href="#intake" className="mt-6">
-                Start a search
-              </PillButton>
+              <div className="mt-auto pt-6">
+                <PillButton href="#intake">Start a search</PillButton>
+              </div>
             </div>
           </motion.article>
 
@@ -90,14 +92,15 @@ export function TwoSided() {
           <motion.article
             {...rise}
             transition={{ ...rise.transition, delay: 0.1 }}
-            className="overflow-hidden rounded-[20px] bg-lav-deep"
+            className="flex h-full flex-col overflow-hidden rounded-[20px] bg-lav-deep"
           >
-            <div className="px-7 pt-8 sm:px-9 sm:pt-10">
-              <div
-                role="img"
-                aria-label="A found-person report matched to a case"
-                className="rounded-xl border border-linec bg-surface p-4 shadow-[0_14px_36px_-12px_rgba(24,22,35,0.14)]"
-              >
+            <div className="flex justify-center px-7 pt-8 sm:px-9 sm:pt-10">
+              <div className="flex w-full flex-col justify-center md:min-h-[224px]">
+                <div
+                  role="img"
+                  aria-label="A found-person report matched to a case"
+                  className="rounded-xl border border-linec bg-surface p-4 shadow-[0_14px_36px_-12px_rgba(24,22,35,0.14)]"
+                >
                 <div className="flex items-center justify-between">
                   <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">
                     Found-person report
@@ -121,18 +124,21 @@ export function TwoSided() {
                     Age, location and description all agree.
                   </p>
                 </div>
+                </div>
               </div>
             </div>
-            <div className="px-7 pb-8 pt-7 sm:px-9 sm:pb-10">
+            <div className="flex flex-1 flex-col px-7 pb-8 pt-7 sm:px-9 sm:pb-10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-faint">
                 Found someone
               </p>
               <h3 className="mt-2.5 max-w-[360px] text-balance text-[24px] font-medium leading-[1.2] tracking-[-0.02em] text-ink md:text-[27px]">
                 Upload what you know and search for potential matches.
               </h3>
-              <PillButton href="#found" variant="outline" className="mt-6">
-                Find a match
-              </PillButton>
+              <div className="mt-auto pt-6">
+                <PillButton href="#found" variant="outline">
+                  Find a match
+                </PillButton>
+              </div>
             </div>
           </motion.article>
         </div>

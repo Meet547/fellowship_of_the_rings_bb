@@ -17,14 +17,16 @@ const PETAL_R = 126;
 const PETAL_D = 126; // distance from flower centre
 const OUTER_R = 252;
 
-const PETALS = [
+type Petal = { angle: number; num: string; name: string; name2?: string };
+
+const PETALS: readonly Petal[] = [
   { angle: -90, num: "02", name: "Case" },
   { angle: -30, num: "03", name: "Sighting" },
   { angle: 30, num: "04", name: "News" },
   { angle: 90, num: "05", name: "Public", name2: "record" },
   { angle: 150, num: "06", name: "Found", name2: "person" },
   { angle: 210, num: "07", name: "Evidence" },
-] as const;
+];
 
 function petalPoint(angleDeg: number, radius: number) {
   const a = (angleDeg * Math.PI) / 180;

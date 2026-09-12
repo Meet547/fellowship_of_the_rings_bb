@@ -43,7 +43,7 @@ export function Guides() {
       className="bg-cream py-20 md:py-28"
     >
       <div className="mx-auto max-w-[1200px] px-5">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           {GUIDES.map((g, i) => (
             <Reveal key={g.title} delay={i * 0.08} className="h-full">
               <article className="flex h-full flex-col rounded-[16px] bg-[#EFEDE8] p-3.5 transition-shadow duration-300 hover:shadow-[0_16px_36px_-14px_rgba(24,22,35,0.14)]">
@@ -57,7 +57,7 @@ export function Guides() {
                     {g.title}
                   </h3>
                   <p className="mt-1.5 text-[13.5px] text-body">{g.note}</p>
-                  <div className="mt-5">
+                  <div className="mt-auto pt-5">
                     <PillButton href={g.href} variant="outline" arrow="upright" className="h-10 bg-transparent text-[14px]">
                       Read the guide
                     </PillButton>

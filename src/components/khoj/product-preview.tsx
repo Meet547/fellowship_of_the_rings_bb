@@ -44,24 +44,24 @@ export function ProductPreview() {
         className="mx-auto w-[920px] max-w-none overflow-hidden rounded-xl border border-linec bg-surface text-left shadow-[0_24px_64px_-16px_rgba(24,22,35,0.22),0_2px_8px_rgba(24,22,35,0.06)] sm:w-full"
       >
         {/* top bar */}
-        <div className="flex h-[54px] items-center justify-between border-b border-linec/90 bg-surface px-4">
-          <div className="flex items-center gap-3">
+        <div className="flex h-[54px] items-center justify-between gap-3 border-b border-linec/90 bg-surface px-4">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               tabIndex={-1}
-              className="flex items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2 transition-colors hover:bg-ink/[0.04]"
+              className="flex shrink-0 items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2 transition-colors hover:bg-ink/[0.04]"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-ink text-[11px] font-semibold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink text-[11px] font-semibold text-white">
                 RS
               </span>
-              <span className="text-[13.5px] font-medium text-ink">
+              <span className="whitespace-nowrap text-[13.5px] font-medium text-ink">
                 Sharma family · Case {DEMO_CASE.caseNo}
               </span>
-              <ChevronDown className="h-3.5 w-3.5 text-faint" />
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-faint" />
             </button>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-linec bg-white py-1.5 pl-3 pr-2.5 text-[13px] text-faint md:flex">
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full border border-linec bg-white py-1.5 pl-3 pr-2.5 text-[13px] text-faint lg:flex">
               <Search className="h-3.5 w-3.5" />
               <span className="w-44">Search people, places, records</span>
               <kbd className="rounded border border-linec bg-lav px-1.5 py-0.5 text-[10px] text-body">
@@ -69,15 +69,15 @@ export function ProductPreview() {
               </kbd>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-accent px-3 text-[12.5px] font-medium text-white">
+              <span className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-3 text-[12.5px] font-medium text-white">
                 <Sparkles className="h-3.5 w-3.5" />
                 New search
               </span>
-              <span className="relative flex h-8 w-8 items-center justify-center rounded-full text-body">
+              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-body">
                 <Bell className="h-4 w-4" />
                 <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lav-deep text-[11px] font-semibold text-body">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lav-deep text-[11px] font-semibold text-body">
                 PK
               </span>
             </div>

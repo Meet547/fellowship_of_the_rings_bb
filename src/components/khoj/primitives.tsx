@@ -100,14 +100,14 @@ export function PillButton({
   const inner = (
     <>
       <span className="whitespace-nowrap">{children}</span>
-      {arrow === "right" && <ArrowRight className="h-4 w-4 -mr-1" strokeWidth={2} />}
+      {arrow === "right" && <ArrowRight className="h-4 w-4 -mr-1 shrink-0" strokeWidth={2} />}
       {arrow === "upright" && (
-        <ArrowUpRight className="h-4 w-4 -mr-1" strokeWidth={2} />
+        <ArrowUpRight className="h-4 w-4 -mr-1 shrink-0" strokeWidth={2} />
       )}
     </>
   );
   const cls = cn(
-    "group inline-flex h-11 items-center justify-center gap-1.5 rounded-full px-5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+    "group inline-flex h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
     pillStyles[variant],
     className
   );

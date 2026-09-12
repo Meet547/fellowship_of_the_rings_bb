@@ -57,7 +57,11 @@ function CapabilityCard({
   return (
     <Reveal className="h-full">
       <article className="flex h-full flex-col overflow-hidden rounded-[20px] bg-lav-deep">
-        <div className="px-7 pt-8 sm:px-9 sm:pt-10">{mock}</div>
+        <div className="flex justify-center px-7 pt-8 sm:px-9 sm:pt-10">
+          <div className="flex w-full max-w-[430px] flex-col justify-center md:min-h-[390px]">
+            {mock}
+          </div>
+        </div>
         <div className="flex flex-1 flex-col px-7 pb-8 pt-7 sm:px-9 sm:pb-10">
           <h3 className="max-w-[340px] text-balance text-[24px] font-medium leading-[1.2] tracking-[-0.02em] text-ink md:text-[27px]">
             {title}
@@ -65,7 +69,7 @@ function CapabilityCard({
           <p className="mt-3 max-w-[360px] text-pretty text-[15.5px] leading-[1.55] text-body">
             {sub}
           </p>
-          <div className="mt-6">
+          <div className="mt-auto pt-6">
             <PillButton href={href} variant="chip">
               {cta}
             </PillButton>
@@ -87,7 +91,7 @@ function VoiceMock() {
     <div
       role="img"
       aria-label="Voice intake: KHOJ transcribes a spoken description and extracts name, age and last seen location"
-      className="relative mx-auto w-full max-w-[430px] rounded-xl border border-linec bg-surface p-5 shadow-[0_18px_44px_-14px_rgba(24,22,35,0.16)]"
+      className="relative w-full rounded-xl border border-linec bg-surface p-5 shadow-[0_18px_44px_-14px_rgba(24,22,35,0.16)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">
@@ -162,7 +166,7 @@ function SourcesMock() {
     <div
       role="img"
       aria-label="Connected search: missing-person records, news sources and public records searched; matches being compared"
-      className="relative mx-auto w-full max-w-[430px] rounded-xl border border-linec bg-surface p-5 shadow-[0_18px_44px_-14px_rgba(24,22,35,0.16)]"
+      className="relative w-full rounded-xl border border-linec bg-surface p-5 shadow-[0_18px_44px_-14px_rgba(24,22,35,0.16)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">
