@@ -53,3 +53,26 @@ Work Log:
 Stage Summary:
 - All reported misalignments fixed with structural patterns (shrink-0/nowrap for buttons, min-h+justify-center for mock slots, mt-auto for CTAs, scale-to-fit for fixed-canvas diagrams)
 - No content changes; visual language untouched
+
+---
+Task ID: 4
+Agent: main (Super Z)
+Task: Add product flow pages — authentication → agentic pipeline → chat (OpenAI/Whisper) — with professional animations
+
+Work Log:
+- src/lib/session.ts: mock Cognito (localStorage session, nameFromEmail/initials, useRequireSession guard w/ deferred check to satisfy react-hooks/set-state-in-effect)
+- src/lib/pipeline-data.ts: 4 Strands agents (Intake/Search/Matching/Lead) with per-task durations + result notes, EXTRACTED_CASE, SAMPLE_DESCRIPTION, 3 honest leads (91/64/52 with flags), RESULT_STATS — all isolated for future Amplify/API swap
+- src/lib/chat-engine.ts: keyword-intent reply engine grounded in case #0142 (sources/91-match/timeline/leads/contradictions/next-steps/greeting/fallback), citation chips, SUGGESTED_PROMPTS, VOICE_SAMPLES, WHISPER_DELAY
+- src/components/khoj/app-shell.tsx: app top bar (logo, Pipeline/Case-chat segmented nav w/ layoutId pill, DEMO DATA chip, avatar menu w/ duplicate-click guard 250ms + sign out), session guard + splash, footer disclaimer
+- src/app/signin/page.tsx: split brand panel (lav-deep, panel-grid, trust bullets, floating mini lead card) + form card; Sign in/Create account tabs (layoutId), inline validation, idle→loading→success button states, 6-digit OTP step (auto-advance/paste/auto-submit), redirects to ?next= param
+- src/app/pipeline/page.tsx: 3 phases — intake (textarea + Whisper dictation typing effect), running (segmented progress bar, desktop stepper w/ per-stage timings, agent card with bullet tasks: pending invisible → spinner → spring check + result detail, case summary card after stage 1, live elapsed timer, auto-scroll), done (animated 91% score ring, evidence checks grid, source chips, expandable secondary leads, chat CTA banner, run again)
+- src/app/chat/page.tsx: streaming word-by-word replies w/ typing dots + caret, citation chips, suggested prompts, Whisper voice input (pulsing mic + waveform + live transcript + "Whisper ✓" chip → auto-send), auto-scroll, auto-resizing composer, responsive placeholder via callback ref (attachTa) — fixed double-guard bug (ChatInner + AppShell both gated; children mount after AppShell flips, so ChatInner's [ready] effect fired with el=null)
+- Landing wiring: navbar/final-cta/two-sided "Sign in"/"Start a search"/"I already have a case"/"Find a match" → /signin
+- layout.tsx: data-scroll-behavior="smooth" (Next warning)
+- Debugged + fixed: react-hooks/set-state-in-effect (defer setTimeout), account menu self-closing (250ms duplicate-click guard), Turbopack stale chunk red herring (chunk-list stub; real code fresh), chat composer clipping (double-guard + JSX placeholder overriding ref; owned placeholder in effect)
+- Verified via agent-browser: signin→pipeline→chat full flow, signup→OTP→session, sign-out, auth guard redirect (?next=), pipeline all 3 phases, chat streaming/citations/voice, mobile 390px (composer fits: h43/sh43), desktop 1440px; lint clean, dev.log 200s only
+
+Stage Summary:
+- Flow complete: / (landing) → /signin → /pipeline → /chat, all mock data isolated in 3 lib modules for future Amplify/Bedrock/Whisper integration
+- Design language preserved: cream/lavender/accent tokens, pill buttons, Geist, restrained motion w/ reduced-motion guards
+- Known automation quirk: agent-browser native input dispatch intermittently dies mid-session (restart browser fixes); app-side clicks verified via JS dispatch + earlier native clicks

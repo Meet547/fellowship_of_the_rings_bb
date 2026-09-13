@@ -27,10 +27,10 @@ export function FinalCTA() {
           evidence behind them.
         </p>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PillButton href="#intake" className="h-12 px-6">
+          <PillButton href="/signin" className="h-12 px-6">
             Start a search
           </PillButton>
-          <PillButton href="#two-sided" variant="outline" arrow="none" className="h-12 px-6">
+          <PillButton href="/signin" variant="outline" arrow="none" className="h-12 px-6">
             I already have a case
           </PillButton>
         </div>

@@ -110,13 +110,13 @@ export function Navbar() {
         {/* Right actions */}
         <div className="flex items-center gap-2">
           <a
-            href="#final-cta"
+            href="/signin"
             className="hidden rounded-full px-3.5 py-2 text-[15px] text-ink/90 transition-colors hover:bg-ink/[0.045] hover:text-ink sm:block"
           >
             Sign in
           </a>
           <a
-            href="#intake"
+            href="/signin"
             className="hidden h-10 items-center rounded-full bg-accent px-4 text-[14.5px] font-medium text-white shadow-[0_1px_2px_rgba(24,22,35,0.18)] transition-colors hover:bg-accent-deep sm:inline-flex"
           >
             Start a search
@@ -171,14 +171,14 @@ export function Navbar() {
               ))}
               <div className="flex gap-2 pt-3">
                 <a
-                  href="#intake"
+                  href="/signin"
                   onClick={() => setOpen(false)}
                   className="flex h-11 flex-1 items-center justify-center rounded-full bg-accent text-[15px] font-medium text-white"
                 >
                   Start a search
                 </a>
                 <a
-                  href="#final-cta"
+                  href="/signin"
                   onClick={() => setOpen(false)}
                   className="flex h-11 flex-1 items-center justify-center rounded-full border border-linec bg-white text-[15px] font-medium text-ink"
                 >

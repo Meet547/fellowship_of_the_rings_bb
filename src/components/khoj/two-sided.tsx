@@ -83,7 +83,7 @@ export function TwoSided() {
                 Describe who you&rsquo;re looking for and let KHOJ investigate.
               </h3>
               <div className="mt-auto pt-6">
-                <PillButton href="#intake">Start a search</PillButton>
+                <PillButton href="/signin">Start a search</PillButton>
               </div>
             </div>
           </motion.article>
@@ -135,7 +135,7 @@ export function TwoSided() {
                 Upload what you know and search for potential matches.
               </h3>
               <div className="mt-auto pt-6">
-                <PillButton href="#found" variant="outline">
+                <PillButton href="/signin" variant="outline">
                   Find a match
                 </PillButton>
               </div>
