@@ -16,6 +16,10 @@ NEXT_PUBLIC_COGNITO_USER_POOL_ID=<generated user pool id>
 NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=<generated app client id>
 ```
 
+Amplify provides `AWS_REGION` automatically. Do not add it manually in the
+Amplify Hosting environment-variable screen because variables beginning with
+`AWS` are reserved.
+
 `NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID` is optional and is not needed for sign-in.
 
 ## Deploy the auth backend
