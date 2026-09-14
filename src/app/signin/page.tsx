@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { isAmplifyConfigured } from "@/lib/amplify";
 import { KhojMark } from "@/components/khoj/primitives";
 import {
   getSession,
@@ -9,6 +10,7 @@ import {
   setSession,
 } from "@/lib/session";
 import { AnimatePresence, motion } from "framer-motion";
+import { confirmSignUp, signIn, signUp } from "aws-amplify/auth";
 import {
   ArrowRight,
   Check,
@@ -224,7 +226,9 @@ function SignInInner() {
   const [otpError, setOtpError] = React.useState("");
 
   React.useEffect(() => {
-    if (getSession()) router.replace(next);
+    getSession().then((session) => {
+      if (session) router.replace(next);
+    });
   }, [router, next]);
 
   const finish = (who: { name: string; email: string }) => {
@@ -232,7 +236,7 @@ function SignInInner() {
     setTimeout(() => router.replace(next), 750);
   };
 
-  const submitSignIn = (e: React.FormEvent) => {
+  const submitSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!isValidEmail(email)) errs.email = "Enter a valid email address.";
@@ -241,13 +245,29 @@ function SignInInner() {
     if (Object.keys(errs).length > 0) return;
 
     setStatus("loading");
+    if (isAmplifyConfigured) {
+      try {
+        const result = await signIn({ username: email.trim(), password });
+        if (result.nextStep.signInStep === "CONFIRM_SIGN_UP") {
+          setMode("verify");
+          setStatus("idle");
+          return;
+        }
+        setStatus("success");
+        finish({ name: nameFromEmail(email), email: email.trim() });
+      } catch (error) {
+        setStatus("idle");
+        setErrors({ password: error instanceof Error ? error.message : "Unable to sign in." });
+      }
+      return;
+    }
     setTimeout(() => {
       setStatus("success");
       finish({ name: nameFromEmail(email), email: email.trim() });
     }, 950);
   };
 
-  const submitSignUp = (e: React.FormEvent) => {
+  const submitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (name.trim().length < 2) errs.name = "Tell us your name.";
@@ -257,13 +277,29 @@ function SignInInner() {
     if (Object.keys(errs).length > 0) return;
 
     setStatus("loading");
+    if (isAmplifyConfigured) {
+      try {
+        const result = await signUp({
+          username: email.trim(),
+          password,
+          options: { userAttributes: { email: email.trim(), name: name.trim() } },
+        });
+        setStatus("idle");
+        if (result.nextStep.signUpStep === "CONFIRM_SIGN_UP") setMode("verify");
+        else finish({ name: name.trim(), email: email.trim() });
+      } catch (error) {
+        setStatus("idle");
+        setErrors({ email: error instanceof Error ? error.message : "Unable to create account." });
+      }
+      return;
+    }
     setTimeout(() => {
       setStatus("idle");
       setMode("verify");
     }, 950);
   };
 
-  const verifyCode = (code?: string) => {
+  const verifyCode = async (code?: string) => {
     if (verifying) return;
     const value = code ?? "";
     if (value.length !== 6) {
@@ -272,6 +308,17 @@ function SignInInner() {
     }
     setOtpError("");
     setVerifying(true);
+    if (isAmplifyConfigured) {
+      try {
+        await confirmSignUp({ username: email.trim(), confirmationCode: value });
+        await signIn({ username: email.trim(), password });
+        finish({ name: name.trim() || nameFromEmail(email), email: email.trim() });
+      } catch (error) {
+        setVerifying(false);
+        setOtpError(error instanceof Error ? error.message : "That code could not be verified.");
+      }
+      return;
+    }
     setTimeout(() => {
       finish({ name: name.trim() || nameFromEmail(email), email: email.trim() });
     }, 1050);

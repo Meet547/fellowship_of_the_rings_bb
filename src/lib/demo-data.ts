@@ -171,12 +171,17 @@ export const EVIDENCE_NODES = [
 
 export const TECH_STACK: TechItem[] = [
   { name: "AWS AMPLIFY", role: "Application & hosting" },
+  { name: "AMAZON COGNITO", role: "Authentication" },
+  { name: "API GATEWAY", role: "API layer" },
+  { name: "AWS LAMBDA", role: "Serverless compute" },
   { name: "AMAZON BEDROCK", role: "AI reasoning" },
-  { name: "STRANDS", role: "Agent orchestration" },
   { name: "AMAZON OPENSEARCH", role: "Search & retrieval" },
-  { name: "DYNAMODB", role: "Case data" },
-  { name: "AMAZON S3", role: "Evidence storage" },
   { name: "AWS STEP FUNCTIONS", role: "Investigation workflows" },
+  { name: "AMAZON DYNAMODB", role: "Case data" },
+  { name: "AMAZON S3", role: "Evidence storage" },
+  { name: "AMAZON EVENTBRIDGE", role: "Event automation" },
+  { name: "EVENTBRIDGE SCHEDULER", role: "Scheduled re-search" },
+  { name: "CEDAR", role: "Authorization" },
 ];
 
 /* ------------------------------------------------------------------------- */
@@ -198,7 +203,7 @@ export const FOOTER_GROUPS: { title: string; links: string[] }[] = [
   },
   {
     title: "TECHNOLOGY",
-    links: ["AWS", "Bedrock", "Strands"],
+    links: ["AWS", "Bedrock", "Evidence"],
   },
 ];
 

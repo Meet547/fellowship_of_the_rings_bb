@@ -5,14 +5,14 @@ import { motion, useReducedMotion } from "framer-motion";
 import * as React from "react";
 
 /**
- * Subtle scroll-reveal used across sections — fast, small offset,
+ * Subtle scroll-reveal used across sections — short, small offset,
  * respects prefers-reduced-motion.
  */
 export function Reveal({
   children,
   className,
   delay = 0,
-  y = 22,
+  y = 16,
   as = "div",
 }: {
   children: React.ReactNode;
@@ -28,8 +28,8 @@ export function Reveal({
       className={cn(className)}
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.65, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+      viewport={{ once: true, amount: 0.18, margin: "-48px" }}
+      transition={{ duration: 0.52, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
     >
       {children}
     </Comp>

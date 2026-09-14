@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/khoj/app-shell";
 import { KhojMark, MockCheck } from "@/components/khoj/primitives";
-import { getReply, SUGGESTED_PROMPTS, VOICE_SAMPLES, WHISPER_DELAY } from "@/lib/chat-engine";
+import { SUGGESTED_PROMPTS, VOICE_SAMPLES, WHISPER_DELAY } from "@/lib/chat-engine";
 import { EXTRACTED_CASE } from "@/lib/pipeline-data";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, FileText, Mic, Sparkles, X } from "lucide-react";
@@ -130,7 +130,7 @@ function ChatInner() {
   /*  Send + stream                                                      */
   /* ------------------------------------------------------------------ */
   const send = React.useCallback(
-    (raw: string) => {
+    async (raw: string) => {
       const text = raw.trim();
       if (!text || streaming || listening) return;
 
@@ -140,7 +140,36 @@ function ChatInner() {
       setThinking(true);
       setStreaming(true);
 
-      const reply = getReply(text);
+      let reply: { text: string; cites?: string[] };
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+        const payload = (await response.json()) as {
+          text?: string;
+          cites?: string[];
+          error?: string;
+        };
+        if (!response.ok || !payload.text) {
+          throw new Error(payload.error || "Unable to answer that question.");
+        }
+        reply = { text: payload.text, cites: payload.cites };
+      } catch {
+        setThinking(false);
+        setStreaming(false);
+        setMessages((m) => [
+          ...m,
+          {
+            id: nextId++,
+            role: "assistant",
+            text: "I couldn't reach the case service. Please try that question again.",
+          },
+        ]);
+        return;
+      }
+
       const words = reply.text.split(" ");
       const replyId = nextId++;
 

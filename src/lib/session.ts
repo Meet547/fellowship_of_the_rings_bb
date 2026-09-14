@@ -1,13 +1,5 @@
-/**
- * ---------------------------------------------------------------------------
- * DEMO SESSION — client-side mock authentication
- * ---------------------------------------------------------------------------
- * Stands in for AWS Cognito until the real backend exists. The session lives
- * in localStorage only; swapping this module for real Cognito calls later
- * should not touch any component.
- * ---------------------------------------------------------------------------
- */
-
+import { getCurrentUser, signOut } from "aws-amplify/auth";
+import { isAmplifyConfigured } from "@/lib/amplify";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -19,7 +11,20 @@ export interface KhojSession {
 
 const SESSION_KEY = "khoj.demo.session";
 
-export function getSession(): KhojSession | null {
+export async function getSession(): Promise<KhojSession | null> {
+  if (isAmplifyConfigured) {
+    try {
+      const user = await getCurrentUser();
+      return {
+        name: String(user.username),
+        email: String(user.signInDetails?.loginId || user.username),
+        since: new Date().toISOString(),
+      };
+    } catch {
+      return null;
+    }
+  }
+
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(SESSION_KEY);
@@ -36,8 +41,11 @@ export function setSession(session: KhojSession) {
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
-export function clearSession() {
-  window.localStorage.removeItem(SESSION_KEY);
+export async function clearSession() {
+  if (isAmplifyConfigured) {
+    await signOut().catch(() => undefined);
+  }
+  if (typeof window !== "undefined") window.localStorage.removeItem(SESSION_KEY);
 }
 
 export function nameFromEmail(email: string): string {
@@ -75,9 +83,9 @@ export function useRequireSession(next = "/pipeline") {
   useEffect(() => {
     let cancelled = false;
     // Deferred so the check never cascades a synchronous re-render.
-    const id = setTimeout(() => {
+    const id = setTimeout(async () => {
       if (cancelled) return;
-      const existing = getSession();
+      const existing = await getSession();
       if (!existing) {
         router.replace(`/signin?next=${encodeURIComponent(next)}`);
         return;

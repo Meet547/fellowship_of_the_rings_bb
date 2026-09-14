@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { SmoothScroll } from "@/components/khoj/smooth-scroll";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,11 +48,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="auto">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-cream text-ink font-sans`}
       >
         {children}
+        <SmoothScroll />
         <Toaster />
       </body>
     </html>

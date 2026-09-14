@@ -447,12 +447,26 @@ function PipelineInner() {
     });
   }, [stageIdx, phase, reduce]);
 
-  const startInvestigation = () => {
+  const startInvestigation = async () => {
     if (description.trim().length < 30) {
       setIntakeError("Add a little more detail — a few sentences about who, where and when.");
       return;
     }
     setIntakeError("");
+    try {
+      const response = await fetch("/api/investigations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Unable to start the investigation.");
+    } catch (error) {
+      setIntakeError(
+        error instanceof Error ? error.message : "Unable to start the investigation.",
+      );
+      return;
+    }
     elapsedRef.current = 0;
     setElapsed(0);
     setStageTimes({});
