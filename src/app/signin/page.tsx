@@ -282,7 +282,7 @@ function SignInInner() {
         const result = await signUp({
           username: email.trim(),
           password,
-          options: { userAttributes: { email: email.trim(), name: name.trim() } },
+          options: { userAttributes: { email: email.trim() } },
         });
         setStatus("idle");
         if (result.nextStep.signUpStep === "CONFIRM_SIGN_UP") setMode("verify");

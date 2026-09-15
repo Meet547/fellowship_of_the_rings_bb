@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
   const client = await getCognitoClient();
   const { redirectUri } = getCognitoConfig();
-  const params = client.callbackParams(new URL(request.url));
+  const params = client.callbackParams(request.url);
 
   try {
     const tokenSet = await client.callback(redirectUri, params, {

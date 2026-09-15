@@ -4,9 +4,4 @@ export const auth = defineAuth({
   loginWith: {
     email: true,
   },
-  userAttributes: {
-    name: {
-      required: true,
-    },
-  },
 });
