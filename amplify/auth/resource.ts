@@ -5,7 +5,7 @@ export const auth = defineAuth({
     email: true,
   },
   userAttributes: {
-    fullname: {
+    name: {
       required: true,
     },
   },

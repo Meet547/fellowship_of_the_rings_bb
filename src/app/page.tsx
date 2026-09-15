@@ -3,13 +3,25 @@ import { Hero } from "@/components/khoj/hero";
 import { FlowerSection } from "@/components/khoj/diagram";
 import { HowItWorks } from "@/components/khoj/how-it-works";
 import { FeatureCards } from "@/components/khoj/feature-cards";
-import { EvidenceSection } from "@/components/khoj/evidence-section";
 import { FeatureSection } from "@/components/khoj/feature-section";
 import { TwoSided } from "@/components/khoj/two-sided";
 import { Guides } from "@/components/khoj/guides";
-import { TechnologySection } from "@/components/khoj/technology-section";
 import { FinalCTA } from "@/components/khoj/final-cta";
 import { Footer } from "@/components/khoj/footer";
+import dynamic from "next/dynamic";
+
+const EvidenceSection = dynamic(
+  () => import("@/components/khoj/evidence-section").then((mod) => mod.EvidenceSection),
+  { loading: () => <SectionPlaceholder /> },
+);
+const TechnologySection = dynamic(
+  () => import("@/components/khoj/technology-section").then((mod) => mod.TechnologySection),
+  { loading: () => <SectionPlaceholder /> },
+);
+
+function SectionPlaceholder() {
+  return <div className="mx-auto h-24 max-w-[1200px]" aria-hidden="true" />;
+}
 
 /**
  * KHOJ — landing page.

@@ -10,13 +10,16 @@ shelter intake score 64 (clothing unconfirmed); Bharuch patrol sighting score
 52 (second-hand description). These are potential leads, not confirmed identity.
 `;
 
+const bedrockClient = new BedrockRuntimeClient({
+  region: process.env.AWS_REGION,
+});
+
 async function answerWithBedrock(message: string) {
   const region = process.env.AWS_REGION;
   const modelId = process.env.KHOJ_BEDROCK_MODEL_ID;
   if (!region || !modelId) return null;
 
-  const client = new BedrockRuntimeClient({ region });
-  const response = await client.send(
+  const response = await bedrockClient.send(
     new ConverseCommand({
       modelId,
       system: [

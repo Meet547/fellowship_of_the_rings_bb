@@ -32,7 +32,7 @@ const SIDENAV = [
  * KHOJ investigation dashboard — replaces the reference's banking dashboard
  * in the hero. Data comes from lib/demo-data (illustrative only).
  */
-export function ProductPreview() {
+export const ProductPreview = React.memo(function ProductPreview() {
   const reduce = useReducedMotion();
   const ease = [0.21, 0.47, 0.32, 0.98] as const;
 
@@ -279,7 +279,7 @@ export function ProductPreview() {
       </div>
     </div>
   );
-}
+});
 
 /** Animated 0–91 score ring. */
 function ScoreRing({ value }: { value: number }) {

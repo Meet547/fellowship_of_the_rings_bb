@@ -129,7 +129,7 @@ function TaskBullet({
   );
 }
 
-function AgentCard({
+const AgentCard = React.memo(function AgentCard({
   stage,
   state,
   tasksDone,
@@ -179,9 +179,9 @@ function AgentCard({
       </ul>
     </div>
   );
-}
+});
 
-function CaseSummaryCard() {
+const CaseSummaryCard = React.memo(function CaseSummaryCard() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -210,7 +210,7 @@ function CaseSummaryCard() {
       </dl>
     </motion.div>
   );
-}
+});
 
 function ScoreRing({ score, size = 88 }: { score: number; size?: number }) {
   const r = 26;

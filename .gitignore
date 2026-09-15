@@ -16,6 +16,9 @@ node_modules
 # next.js
 /.next/
 /out/
+/amplify_outputs.json
+/amplify_outputs.ts
+/amplify_outputs.mjs
 
 # production
 /build
@@ -51,5 +54,8 @@ test
 prompt
 
 server.log
+*.cpuprofile
+*.heapprofile
+*.trace
 # Skills directory
 /skills/
