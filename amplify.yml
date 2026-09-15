@@ -7,7 +7,8 @@ backend:
     build:
       commands:
         - cd "$CODEBUILD_SRC_DIR"
-        - npm exec --offline -- ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir "$CODEBUILD_SRC_DIR" --outputs-format json
+        - export npm_config_user_agent="${npm_config_user_agent:-npm/$(npm --version) node/$(node --version)}"
+        - ./node_modules/.bin/ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir "$CODEBUILD_SRC_DIR" --outputs-format json
 frontend:
   phases:
     preBuild:
