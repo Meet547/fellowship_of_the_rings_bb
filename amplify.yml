@@ -6,7 +6,8 @@ backend:
         - npm ci --include=optional
     build:
       commands:
-        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID --outputs-out-dir . --outputs-format json
+        - cd "$CODEBUILD_SRC_DIR"
+        - npx ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID" --outputs-out-dir "$CODEBUILD_SRC_DIR" --outputs-format json
 frontend:
   phases:
     preBuild:
@@ -14,6 +15,7 @@ frontend:
         - npm ci --include=optional
     build:
       commands:
+        - cd "$CODEBUILD_SRC_DIR"
         - npm run build
   artifacts:
     baseDirectory: .next
