@@ -1,18 +1,27 @@
 import { Amplify } from "aws-amplify";
+import { generatedAuthConfig } from "@/lib/amplify-generated";
 
-const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID;
-const userPoolClientId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID;
-const region = process.env.NEXT_PUBLIC_AWS_REGION || process.env.AWS_REGION;
+const configuredAuth = generatedAuthConfig ?? {
+  region: process.env.NEXT_PUBLIC_AWS_REGION || process.env.AWS_REGION,
+  userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
+  userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID,
+};
 
-export const isAmplifyConfigured = Boolean(userPoolId && userPoolClientId && region);
+export const isAmplifyConfigured = Boolean(
+  configuredAuth.userPoolId && configuredAuth.userPoolClientId && configuredAuth.region,
+);
 
-if (userPoolId && userPoolClientId && region) {
+if (
+  configuredAuth.userPoolId &&
+  configuredAuth.userPoolClientId &&
+  configuredAuth.region
+) {
   Amplify.configure(
     {
       Auth: {
         Cognito: {
-          userPoolId,
-          userPoolClientId,
+          userPoolId: configuredAuth.userPoolId,
+          userPoolClientId: configuredAuth.userPoolClientId,
           loginWith: {
             email: true,
           },

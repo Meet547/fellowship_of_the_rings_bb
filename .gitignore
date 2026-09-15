@@ -19,6 +19,7 @@ node_modules
 /amplify_outputs.json
 /amplify_outputs.ts
 /amplify_outputs.mjs
+/src/lib/amplify-generated.ts
 
 # production
 /build

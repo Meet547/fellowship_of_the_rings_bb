@@ -1,9 +1,14 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const outputsPath = "amplify_outputs.json";
-const envPath = ".env.production.local";
+const generatedDir = "src/lib";
+const generatedPath = `${generatedDir}/amplify-generated.ts`;
 
 if (!existsSync(outputsPath)) {
+  writeFileSync(
+    generatedPath,
+    `export const generatedAuthConfig = null;\n`,
+  );
   process.exit(0);
 }
 
@@ -19,14 +24,21 @@ if (!region || !userPoolId || !userPoolClientId) {
   );
 }
 
-const env = [
-  `NEXT_PUBLIC_AWS_REGION=${region}`,
-  `NEXT_PUBLIC_COGNITO_USER_POOL_ID=${userPoolId}`,
-  `NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${userPoolClientId}`,
-];
-
-if (auth.identity_pool_id) {
-  env.push(`NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID=${auth.identity_pool_id}`);
+if (!/^[a-z]{2}-[a-z]+-\d+_[A-Za-z0-9]+$/.test(userPoolId)) {
+  throw new Error(`Amplify generated an invalid Cognito user pool ID: ${userPoolId}`);
 }
 
-writeFileSync(envPath, `${env.join("\n")}\n`);
+mkdirSync(generatedDir, { recursive: true });
+writeFileSync(
+  generatedPath,
+  `export const generatedAuthConfig = ${JSON.stringify(
+    {
+      region,
+      userPoolId,
+      userPoolClientId,
+      identityPoolId: auth.identity_pool_id ?? null,
+    },
+    null,
+    2,
+  )} as const;\n`,
+);
