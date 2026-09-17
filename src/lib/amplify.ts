@@ -2,10 +2,14 @@ import { Amplify } from "aws-amplify";
 
 let configured = false;
 
+function normalizeCognitoDomain(value: string | undefined) {
+  return value?.trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+}
+
 export function configureAmplify() {
   if (configured) return;
 
-  const hostedUiDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
+  const hostedUiDomain = normalizeCognitoDomain(process.env.NEXT_PUBLIC_COGNITO_DOMAIN);
   const redirectSignIn = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_SIGN_IN?.split(",").map((value) => value.trim()).filter(Boolean);
   const redirectSignOut = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_SIGN_OUT?.split(",").map((value) => value.trim()).filter(Boolean);
   const socialProviders = (process.env.NEXT_PUBLIC_COGNITO_SOCIAL_PROVIDERS ?? "")
