@@ -322,7 +322,7 @@ export function MaskLine({
   }, []);
   const show = inView || forced;
   return (
-    <span ref={ref} className={`block overflow-hidden ${className}`}>
+    <span ref={ref} className={`-mb-[0.12em] block overflow-hidden pb-[0.12em] ${className}`}>
       <MTag
         initial={{ y: "110%" }}
         animate={show ? { y: "0%" } : { y: "110%" }}

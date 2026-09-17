@@ -6,13 +6,10 @@ import {
   Database,
   Heart,
   Lock,
+  Newspaper,
   Search,
   ShieldCheck,
   UsersRound,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
 } from "lucide-react";
 import { useRef } from "react";
 import {
@@ -192,6 +189,87 @@ function StatsBand() {
               <br />
               we can change this.
             </p>
+          </div>
+        </div>
+      </section>
+    </Reveal>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────── */
+
+function IndiaInTheNumbers() {
+  const clippings = [
+    {
+      value: "4 lakh+",
+      label: "missing-person reports are recorded across India in a typical year",
+      source: "NCRB · Crime in India reporting",
+      tone: "bg-card",
+      rotate: "-rotate-1",
+    },
+    {
+      value: "1 lakh+",
+      label: "cases can remain untraced at year-end, keeping families in limbo",
+      source: "Public police and NCRB snapshots",
+      tone: "bg-peach",
+      rotate: "rotate-1",
+    },
+    {
+      value: "Every 8 min",
+      label: "a child is reported missing in India, according to widely cited public estimates",
+      source: "Child Rights and public-report compilations",
+      tone: "bg-sage",
+      rotate: "-rotate-1",
+    },
+  ];
+
+  return (
+    <Reveal>
+      <section className="border-y border-line2 bg-[#e9e1d4]">
+        <div className="mx-auto max-w-[1200px] px-6 py-16 lg:py-20">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-[520px]">
+              <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-rust">
+                <Newspaper size={14} strokeWidth={1.8} />
+                India, in the numbers
+              </div>
+              <h2 className="display-hero text-[clamp(30px,3.8vw,46px)] text-ink">
+                The headlines are people.
+              </h2>
+              <p className="mt-4 max-w-[490px] text-[14px] leading-relaxed text-ink2">
+                Behind every statistic is a family waiting for an answer. These editorial
+                snapshots show why faster, safer coordination matters.
+              </p>
+            </div>
+            <p className="max-w-[260px] text-[11px] leading-relaxed text-ink3 md:text-right">
+              Figures are rounded public-report indicators, not live platform data. Always
+              verify the latest numbers with NCRB and official state police sources.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {clippings.map((clipping, index) => (
+              <motion.article
+                key={clipping.value}
+                initial={{ opacity: 0, y: 18, rotate: index === 1 ? 1 : -1 }}
+                whileInView={{ opacity: 1, y: 0, rotate: index === 1 ? 1 : -1 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.7, delay: index * 0.08 }}
+                className={`relative overflow-hidden rounded-[4px] border border-ink/10 p-6 shadow-[3px_5px_0_rgba(35,32,27,0.08)] ${clipping.tone} ${clipping.rotate}`}
+              >
+                <div className="absolute right-4 top-4 size-2 rounded-full bg-rust/60" />
+                <div className="border-b border-dashed border-ink/20 pb-4 text-[9px] font-semibold uppercase tracking-[0.24em] text-ink3">
+                  KHOJ FIELD NOTE · 2026
+                </div>
+                <div className="mt-5 font-serif text-[36px] font-medium leading-none text-rust">
+                  {clipping.value}
+                </div>
+                <p className="mt-4 min-h-[62px] text-[13px] leading-relaxed text-ink">
+                  {clipping.label}
+                </p>
+                <p className="mt-5 text-[10px] leading-relaxed text-ink3">{clipping.source}</p>
+              </motion.article>
+            ))}
           </div>
         </div>
       </section>
@@ -466,46 +544,6 @@ function DarkCTA() {
 
 /* ───────────────────────────────────────────────────────────────── */
 
-function SiteFooter({ navigate }: { navigate: Navigate }) {
-  const socials = [Twitter, Instagram, Youtube, Linkedin];
-  return (
-    <footer className="border-t border-line2 bg-paper">
-      <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-7 px-6 py-9 md:flex-row">
-        <Logo size="sm" />
-        <nav className="flex items-center gap-7">
-          {(["Find", "Report", "Support", "About"] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => navigate(l === "Find" ? "find" : l === "Report" ? "report" : "landing")}
-              className="link-sweep cursor-pointer text-[12.5px] text-ink2 transition-colors hover:text-ink"
-            >
-              {l}
-            </button>
-          ))}
-        </nav>
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3.5">
-            {socials.map((Icon, i) => (
-              <button
-                key={i}
-                aria-label="Social link"
-                className="cursor-pointer text-ink3 transition-all duration-300 hover:-translate-y-0.5 hover:text-ink"
-              >
-                <Icon size={16} strokeWidth={1.8} />
-              </button>
-            ))}
-          </div>
-          <div className="text-right text-[12px] leading-snug text-ink2">
-            A Safer India
-            <br />
-            Together.
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 /* ───────────────────────────────────────────────────────────────── */
 
 export default function Landing({ navigate }: { navigate: Navigate }) {
@@ -514,12 +552,12 @@ export default function Landing({ navigate }: { navigate: Navigate }) {
       <SiteHeader navigate={navigate} />
       <Hero navigate={navigate} />
       <StatsBand />
+      <IndiaInTheNumbers />
       <TwoWays navigate={navigate} />
       <PhotoSplit navigate={navigate} />
       <DarkInterlude navigate={navigate} />
       <Features />
       <DarkCTA />
-      <SiteFooter navigate={navigate} />
     </div>
   );
 }

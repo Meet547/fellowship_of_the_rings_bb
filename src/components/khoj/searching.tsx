@@ -163,6 +163,7 @@ export default function Searching({ navigate }: { navigate: Navigate }) {
                 <img
                   src="/images/khoj-ramesh.jpg"
                   alt="Person being searched"
+                  loading="lazy"
                   className="size-[128px] rounded-full object-cover ring-4 ring-card shadow-[0_20px_50px_-20px_rgba(35,32,27,0.45)]"
                 />
               </motion.div>

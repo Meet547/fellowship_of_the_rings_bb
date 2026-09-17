@@ -5,6 +5,8 @@ import {
   ArrowRight,
   AudioWaveform,
   Camera,
+  BellRing,
+  MapPinned,
   Search,
   UsersRound,
 } from "lucide-react";
@@ -79,6 +81,26 @@ export default function Dashboard({ navigate }: { navigate: Navigate }) {
           </Reveal>
         ))}
       </div>
+
+      <Reveal delay={0.12}>
+        <section className="mt-8 grid gap-4 md:grid-cols-2">
+          {[
+            { icon: <BellRing size={18} />, title: "Smart alerts", body: "Get notified when a new record matches your saved search.", color: "bg-peach text-rust" },
+            { icon: <MapPinned size={18} />, title: "Live case map", body: "See verified sightings and partner updates on one secure map.", color: "bg-sage text-greenicon" },
+          ].map((feature) => (
+            <article key={feature.title} className="flex items-start gap-4 rounded-[16px] border border-line bg-card p-5">
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${feature.color}`}>{feature.icon}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-serif text-[17px] font-medium text-ink">{feature.title}</h3>
+                  <span className="rounded-full border border-line bg-paper2 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-ink3">Coming soon</span>
+                </div>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-ink2">{feature.body}</p>
+              </div>
+            </article>
+          ))}
+        </section>
+      </Reveal>
 
       {/* stats + map */}
       <Reveal delay={0.15}>

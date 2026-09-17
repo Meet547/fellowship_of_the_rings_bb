@@ -52,6 +52,7 @@ export default function Scan({ navigate }: { navigate: Navigate }) {
             <img
               src="/images/khoj-ramesh.jpg"
               alt="Live camera preview of an elderly man"
+              loading="lazy"
               className={`absolute inset-0 h-full w-full object-cover transition-transform ${flipped ? "-scale-x-100" : ""}`}
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/55 to-transparent px-4 pb-3.5 pt-10">

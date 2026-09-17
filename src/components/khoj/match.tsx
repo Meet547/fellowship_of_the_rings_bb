@@ -80,6 +80,7 @@ export default function Match({ navigate }: { navigate: Navigate }) {
                   key={i}
                   src={src}
                   alt="Additional photo"
+                  loading="lazy"
                   className="aspect-square w-full cursor-pointer rounded-[10px] object-cover opacity-90 transition-all duration-300 hover:opacity-100"
                 />
               ))}

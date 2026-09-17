@@ -12,11 +12,13 @@ import Report from "@/components/khoj/report";
 import PageLoader from "@/components/khoj/page-loader";
 import Searching from "@/components/khoj/searching";
 import Match from "@/components/khoj/match";
+import NotFoundView from "@/components/khoj/not-found";
+import SiteFooter from "@/components/khoj/footer";
 import { ToastProvider } from "@/components/khoj/ui";
 import { useView } from "@/lib/khoj/router";
 import { useEffect, useState, type ReactNode } from "react";
 
-function RouteTransition({ view, children }: { view: string; children: ReactNode }) {
+function RouteTransition({ view, navigate, children }: { view: string; navigate: ReturnType<typeof useView>["navigate"]; children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ function RouteTransition({ view, children }: { view: string; children: ReactNode
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         >
           {children}
+          <SiteFooter navigate={navigate} />
         </motion.div>
       </AnimatePresence>
     </>
@@ -43,7 +46,7 @@ function RouteTransition({ view, children }: { view: string; children: ReactNode
 }
 
 export default function Home() {
-  const { view, navigate } = useView();
+  const { view, navigate, authStatus } = useView();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -53,6 +56,7 @@ export default function Home() {
   const isApp = appViews.includes(view);
 
   const content = (() => {
+    if (authStatus === "loading") return <PageLoader />;
     switch (view) {
       case "landing":
         return <Landing navigate={navigate} />;
@@ -88,6 +92,8 @@ export default function Home() {
         return <Searching navigate={navigate} />;
       case "match":
         return <Match navigate={navigate} />;
+      case "not-found":
+        return <NotFoundView navigate={navigate} />;
       default:
         return <Landing navigate={navigate} />;
     }
@@ -96,7 +102,7 @@ export default function Home() {
   return (
     <ToastProvider>
       <div className={`min-h-screen ${isApp ? "bg-paper" : "bg-paper"}`}>
-        <RouteTransition key={view} view={view}>{content}</RouteTransition>
+        <RouteTransition key={view} view={view} navigate={navigate}>{content}</RouteTransition>
       </div>
     </ToastProvider>
   );

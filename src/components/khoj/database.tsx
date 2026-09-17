@@ -106,6 +106,7 @@ export default function Database({ navigate }: { navigate: Navigate }) {
               <img
                 src={p.img}
                 alt={p.name}
+                loading="lazy"
                 className="size-[54px] shrink-0 rounded-[12px] object-cover"
               />
               <div className="min-w-0 flex-1">

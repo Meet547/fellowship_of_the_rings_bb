@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAuthState } from "./auth-state";
 
 export const VIEWS = [
   "landing",
@@ -12,6 +13,7 @@ export const VIEWS = [
   "report",
   "searching",
   "match",
+  "not-found",
 ] as const;
 
 export type View = (typeof VIEWS)[number];
@@ -20,29 +22,34 @@ export type Navigate = (view: View) => void;
 function viewFromHash(): View {
   if (typeof window === "undefined") return "landing";
   const h = window.location.hash.replace(/^#\/?/, "");
-  return (VIEWS as readonly string[]).includes(h) ? (h as View) : "landing";
+  if (!h) return "landing";
+  return (VIEWS as readonly string[]).includes(h) ? (h as View) : "not-found";
 }
 
 /** Tiny hash router — single-route app, browser back/forward works. */
 export function useView() {
   const [view, setView] = useState<View>("landing");
+  const authStatus = useAuthState();
 
   useEffect(() => {
     const sync = () => {
       const next = viewFromHash();
-      const isPublic = next === "landing" || next === "auth";
-      const authenticated = window.localStorage.getItem("khoj-authenticated") === "true";
-      setView(!isPublic && !authenticated ? "auth" : next);
+      const isPublic = next === "landing" || next === "auth" || next === "not-found";
+      if (authStatus === "loading") return;
+      if (authStatus === "authenticated" && next === "auth") {
+        window.location.hash = "#/dashboard";
+        return;
+      }
+      setView(!isPublic && authStatus !== "authenticated" ? "auth" : next);
     };
     sync();
     window.addEventListener("hashchange", sync);
     return () => window.removeEventListener("hashchange", sync);
-  }, []);
+  }, [authStatus]);
 
   const navigate = useCallback((v: View) => {
     if (typeof window !== "undefined" && v !== "landing" && v !== "auth") {
-      const authenticated = window.localStorage.getItem("khoj-authenticated") === "true";
-      if (!authenticated) {
+      if (authStatus !== "authenticated") {
         window.location.hash = "#/auth";
         return;
       }
@@ -52,7 +59,7 @@ export function useView() {
       return;
     }
     window.location.hash = `#/${v}`;
-  }, []);
+  }, [authStatus]);
 
-  return { view, navigate };
+  return { view, navigate, authStatus };
 }

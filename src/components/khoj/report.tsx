@@ -152,6 +152,7 @@ export default function Report({ navigate }: { navigate: Navigate }) {
           <img
             src="/images/khoj-heritage.jpg"
             alt="Heritage railway station at dusk"
+            loading="lazy"
             className="mt-auto h-[250px] w-full rounded-[16px] object-cover"
           />
         </div>

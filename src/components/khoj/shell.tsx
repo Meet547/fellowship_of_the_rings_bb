@@ -17,6 +17,8 @@ import {
 import { useState, type ReactNode } from "react";
 import { Logo, useToast } from "./ui";
 import type { Navigate, View } from "@/lib/khoj/router";
+import { signOut } from "aws-amplify/auth";
+import { configureAmplify } from "@/lib/amplify";
 
 const NAV: { icon: ReactNode; label: string; view: View }[] = [
   { icon: <Home size={16} strokeWidth={1.8} />, label: "Home", view: "dashboard" },
@@ -35,9 +37,19 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
     { id: "match", title: "Potential match found", body: "Ramesh Sharma matches your recent search.", view: "match" as const },
     { id: "review", title: "Report under review", body: "Your report MP-2481 is being reviewed by our partners.", view: "report" as const },
   ]);
+  const handleSignOut = async () => {
+    try {
+      configureAmplify();
+      await signOut();
+      navigate("auth");
+    } catch {
+      toast("We couldn't sign you out. Please try again.");
+    }
+  };
   return (
-    <div className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-line bg-paper/90 px-6 backdrop-blur-md">
-      <div className="relative hidden w-[360px] items-center sm:flex">
+    <div className="sticky top-0 z-30 flex h-16 items-center border-b border-line bg-paper/90 px-4 backdrop-blur-md sm:px-6">
+      <div className="mx-auto flex w-full max-w-[980px] items-center gap-3">
+      <div className="relative hidden w-[220px] items-center sm:flex">
         <Search size={14.5} className="absolute left-3.5 text-ink3" />
         <input
           value={query}
@@ -121,9 +133,10 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
       {profileOpen && (
         <div className="absolute right-5 top-14 z-40 w-44 rounded-[12px] border border-line bg-card p-2 shadow-lg">
           <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-ink2 hover:bg-paper2" onClick={() => toast("Profile settings are ready to connect.")}>Profile settings</button>
-          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-rust hover:bg-peach/50" onClick={() => { window.localStorage.removeItem("khoj-authenticated"); navigate("auth"); }}>Sign out</button>
+          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-rust hover:bg-peach/50" onClick={() => void handleSignOut()}>Sign out</button>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -140,13 +153,14 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const sidebar = (
-    <div className="flex h-full flex-col bg-night">
+    <div className="relative flex h-full min-h-screen flex-col bg-night">
       <button
         onClick={() => {
           navigate("landing");
           setMobileOpen(false);
         }}
-        className="flex cursor-pointer items-center gap-2.5 px-5 pb-6 pt-6 text-left"
+        aria-label="Go to KHOJ home"
+        className="flex cursor-pointer items-center gap-2.5 px-5 pb-8 pt-6 text-left"
       >
         <span className="flex size-8 items-center justify-center rounded-[9px] bg-rust">
           <Search size={15} className="text-paper2" strokeWidth={2.2} />
@@ -180,7 +194,7 @@ export default function AppShell({
                 />
               )}
               {n.icon}
-              {n.label}
+              <span>{n.label}</span>
             </button>
           );
         })}
@@ -205,9 +219,6 @@ export default function AppShell({
 
   return (
     <div className="flex min-h-screen bg-paper">
-      {/* desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-[228px] shrink-0 lg:block">{sidebar}</aside>
-
       {/* mobile sidebar overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -222,6 +233,10 @@ export default function AppShell({
           </motion.div>
         </div>
       )}
+
+      <aside className="sticky top-0 hidden h-screen w-[228px] shrink-0 lg:block">
+        {sidebar}
+      </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center lg:hidden">

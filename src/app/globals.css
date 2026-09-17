@@ -88,6 +88,16 @@ body {
   letter-spacing: -0.006em;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 520px;
+}
+
 ::selection {
   background: #c0452b;
   color: #fdfaf4;

@@ -2,9 +2,21 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  confirmResetPassword,
+  confirmSignUp,
+  fetchAuthSession,
+  getCurrentUser,
+  resetPassword,
+  resendSignUpCode,
+  signIn,
+  signInWithRedirect,
+  signUp,
+} from "aws-amplify/auth";
 import { Btn, Logo, ScriptNote, useToast } from "./ui";
 import type { Navigate } from "@/lib/khoj/router";
+import { configureAmplify } from "@/lib/amplify";
 
 function GoogleIcon() {
   return (
@@ -35,6 +47,22 @@ function AppleIcon() {
       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8.98-.2 1.92-.86 3.16-.77 1.48.12 2.61.7 3.36 1.8-3.02 1.83-2.32 5.83.47 6.97-.56 1.5-1.29 2.99-2.07 4.17ZM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25Z" />
     </svg>
   );
+}
+
+const PASSWORD_REQUIREMENTS = [
+  { key: "length", label: "At least 8 characters", test: (value: string) => value.length >= 8 },
+  { key: "uppercase", label: "At least 1 uppercase letter", test: (value: string) => /[A-Z]/.test(value) },
+  { key: "lowercase", label: "At least 1 lowercase letter", test: (value: string) => /[a-z]/.test(value) },
+  { key: "number", label: "At least 1 number", test: (value: string) => /\d/.test(value) },
+  { key: "special", label: "At least 1 special character", test: (value: string) => /[^A-Za-z0-9]/.test(value) },
+] as const;
+
+function passwordIsValid(value: string) {
+  return PASSWORD_REQUIREMENTS.every(({ test }) => test(value));
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 function SkylineSketch() {
@@ -92,12 +120,68 @@ function SkylineSketch() {
 
 export default function Auth({ navigate }: { navigate: Navigate }) {
   const [tab, setTab] = useState<"signin" | "create">("signin");
+  const [mode, setMode] = useState<"main" | "confirm" | "forgot">("main");
   const [showPw, setShowPw] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   const pill = { signin: false, create: true } as const;
+  const passwordRequirements = PASSWORD_REQUIREMENTS.map((requirement) => ({
+    ...requirement,
+    satisfied: requirement.test(password),
+  }));
+  const socialProviders = (process.env.NEXT_PUBLIC_COGNITO_SOCIAL_PROVIDERS ?? "")
+    .split(",")
+    .map((provider) => provider.trim())
+    .filter((provider): provider is "Google" | "Apple" => provider === "Google" || provider === "Apple");
+  const hostedUiConfigured = Boolean(
+    process.env.NEXT_PUBLIC_COGNITO_DOMAIN &&
+      process.env.NEXT_PUBLIC_COGNITO_REDIRECT_SIGN_IN &&
+      process.env.NEXT_PUBLIC_COGNITO_REDIRECT_SIGN_OUT &&
+      socialProviders.length > 0,
+  );
+
+  useEffect(() => configureAmplify(), []);
+
+  const errorMessage = (error: unknown) => {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "UserAlreadyExistsException") return "An account with this email already exists. Try signing in instead.";
+    if (name === "CodeMismatchException") return "That verification code is incorrect. Check the email and try again.";
+    if (name === "ExpiredCodeException") return "That verification code has expired. Request a new one.";
+    if (name === "UserNotConfirmedException") return "Please verify your email before signing in.";
+    if (name === "NotAuthorizedException" || name === "UserNotFoundException") return "Incorrect email or password.";
+    if (name === "LimitExceededException" || name === "TooManyRequestsException") return "Too many attempts. Please wait a little while and try again.";
+    if (name === "InvalidPasswordException" || name === "PasswordResetRequiredException") return "That password does not meet the requirements. Use 8+ characters with uppercase, lowercase, a number, and a special character.";
+    if (name === "InvalidParameterException") return "Please check that your email address and the other details are valid.";
+    if (name === "UserAlreadyAuthenticatedException") return "You are already signed in.";
+    if (name === "NetworkError" || name === "FetchError" || name === "TypeError") return "We couldn't reach KHOJ. Check your connection and try again.";
+    return "Something went wrong while processing your request. Please try again.";
+  };
+
+  const run = async (action: () => Promise<void>) => {
+    setLoading(true);
+    try {
+      await action();
+    } catch (error) {
+      if (error instanceof Error && error.name === "UserAlreadyAuthenticatedException") {
+        try {
+          await getCurrentUser();
+          const session = await fetchAuthSession();
+          if (session.tokens) {
+            window.location.hash = "#/dashboard";
+            return;
+          }
+        } catch { /* Show the safe message below if the session cannot be recovered. */ }
+      }
+      toast(errorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col bg-paper">
@@ -153,19 +237,111 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             className="mt-6 space-y-3.5"
             onSubmit={(e) => {
               e.preventDefault();
-              if (!email.trim() || password.length < 6) {
-                toast("Enter an email and a password with at least 6 characters.");
+              if (mode === "confirm") {
+                void run(async () => {
+                  await confirmSignUp({ username: email, confirmationCode: code });
+                  toast("Email confirmed. You can now sign in.");
+                  setMode("main");
+                  setTab("signin");
+                  setCode("");
+                });
                 return;
               }
-              window.localStorage.setItem("khoj-authenticated", "true");
-              navigate("dashboard");
+              if (mode === "forgot") {
+                if (!passwordIsValid(password)) {
+                  const missing = passwordRequirements.filter(({ satisfied }) => !satisfied).map(({ label }) => label.toLowerCase());
+                  toast(`Your password is missing: ${missing.join(", ")}.`);
+                  return;
+                }
+                void run(async () => {
+                  await confirmResetPassword({ username: email, confirmationCode: code, newPassword: password });
+                  toast("Password reset. You can now sign in.");
+                  setMode("main");
+                  setTab("signin");
+                  setCode("");
+                  setPassword("");
+                });
+                return;
+              }
+              if (!email.trim() || !isValidEmail(email)) {
+                toast("Enter a valid email address.");
+                return;
+              }
+              if (tab === "create" && !fullName.trim()) {
+                toast("Enter your full name.");
+                return;
+              }
+              if (tab === "create" && !passwordIsValid(password)) {
+                const missing = passwordRequirements.filter(({ satisfied }) => !satisfied).map(({ label }) => label.toLowerCase());
+                toast(`Your password is missing: ${missing.join(", ")}.`);
+                return;
+              }
+              void run(async () => {
+                if (tab === "create") {
+                  const result = await signUp({
+                    username: email.trim(),
+                    password,
+                    options: {
+                      userAttributes: {
+                        email: email.trim(),
+                        name: fullName.trim(),
+                      },
+                    },
+                  });
+                  if (result.nextStep.signUpStep === "CONFIRM_SIGN_UP") {
+                    setMode("confirm");
+                    toast("Check your email for a verification code.");
+                  } else {
+                    toast("Account created. You can now sign in.");
+                    setTab("signin");
+                  }
+                } else {
+                  const result = await signIn({ username: email, password });
+                  if (result.nextStep.signInStep === "CONFIRM_SIGN_UP") {
+                    setMode("confirm");
+                    toast("Please confirm your email before signing in.");
+                  } else {
+                    navigate("dashboard");
+                  }
+                }
+              });
             }}
           >
+            {mode === "confirm" ? (
+              <>
+                <p className="text-[13px] leading-relaxed text-ink2">Enter the verification code sent to your email.</p>
+                <input
+                  inputMode="numeric"
+                  placeholder="Verification code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                  className="h-11 w-full rounded-[10px] border border-line bg-paper2 px-3.5 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
+                />
+                <Btn type="submit" arrow className="w-full" disabled={loading}>{loading ? "Confirming..." : "Confirm email"}</Btn>
+                <button type="button" disabled={loading} onClick={() => void run(async () => { await resendSignUpCode({ username: email }); toast("A new verification code was sent."); })} className="w-full text-[11.5px] text-ink2 hover:text-ink">Resend code</button>
+                <button type="button" onClick={() => setMode("main")} className="w-full text-[11.5px] text-ink3 hover:text-ink2">Back to sign in</button>
+              </>
+            ) : mode === "forgot" ? (
+              <>
+                <p className="text-[13px] leading-relaxed text-ink2">Enter the code sent to your email and choose a new password.</p>
+                <input inputMode="numeric" placeholder="Verification code" value={code} onChange={(e) => setCode(e.target.value)} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 px-3.5 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
+                <div className="relative">
+                  <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
+                  <input type={showPw ? "text" : "password"} placeholder="New password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-11 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
+                </div>
+                <Btn type="submit" arrow className="w-full" disabled={loading}>{loading ? "Resetting..." : "Reset password"}</Btn>
+                <button type="button" onClick={() => setMode("main")} className="w-full text-[11.5px] text-ink3 hover:text-ink2">Back to sign in</button>
+              </>
+            ) : (<>
             {pill[tab] && (
               <div className="relative">
                 <UserRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
                 <input
                   placeholder="Full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
                   className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-3.5 text-[13.5px] text-ink placeholder:text-ink3 transition-all hover:border-ink/25 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
                 />
               </div>
@@ -174,7 +350,8 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
               <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
               <input
                 type="email"
-                placeholder="Email or phone number"
+                aria-label="Email address"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -188,10 +365,18 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
                 required
                 className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-11 text-[13.5px] text-ink placeholder:text-ink3 transition-all hover:border-ink/25 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
               />
+              {tab === "create" && (
+                <ul aria-label="Password requirements" className="mt-2 space-y-1 text-[11px]">
+                  {passwordRequirements.map(({ key, label, satisfied }) => (
+                    <li key={key} className={satisfied ? "text-forest" : "text-ink3"}>
+                      <span aria-hidden>{satisfied ? "✓" : "○"}</span> {label}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <button
                 type="button"
                 aria-label="Toggle password visibility"
@@ -203,14 +388,20 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             </div>
 
             <div className="flex justify-end pt-0.5">
-              <button type="button" onClick={() => toast("Password reset will be sent when authentication is connected.")} className="link-sweep cursor-pointer text-[11.5px] text-ink2 hover:text-ink">
+              <button type="button" onClick={() => {
+                if (!isValidEmail(email)) {
+                  toast("Enter your email address first so we can send a reset code.");
+                  return;
+                }
+                setMode("forgot");
+                void run(async () => { await resetPassword({ username: email.trim() }); toast("Check your email for a password reset code."); });
+              }} className="link-sweep cursor-pointer text-[11.5px] text-ink2 hover:text-ink">
                 Forgot password?
               </button>
             </div>
 
-            <Btn type="submit" arrow className="w-full">
-              {tab === "signin" ? "Sign In" : "Create Account"}
-            </Btn>
+            <Btn type="submit" arrow className="w-full" disabled={loading}>{loading ? "Please wait..." : tab === "signin" ? "Sign In" : "Create Account"}</Btn>
+            </>)}
           </form>
 
           <div className="my-5 flex items-center gap-3">
@@ -221,16 +412,19 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
 
           <div className="space-y-3">
             {[
-              { icon: <GoogleIcon />, label: "Continue with Google" },
-              { icon: <AppleIcon />, label: "Continue with Apple" },
+              { icon: <GoogleIcon />, label: "Continue with Google", provider: "Google" as const },
+              { icon: <AppleIcon />, label: "Continue with Apple", provider: "Apple" as const },
             ].map((p) => (
               <button
                 key={p.label}
+                type="button"
+                disabled={!hostedUiConfigured || !socialProviders.includes(p.provider) || loading}
                 onClick={() => {
-                  window.localStorage.setItem("khoj-authenticated", "true");
-                  navigate("dashboard");
+                  if (!hostedUiConfigured || !socialProviders.includes(p.provider)) return;
+                  void run(async () => { await signInWithRedirect({ provider: p.provider }); });
                 }}
-                className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-line bg-paper2 text-[13px] font-medium text-ink transition-all duration-300 hover:border-ink/30 hover:bg-card active:scale-[0.99]"
+                title={!hostedUiConfigured || !socialProviders.includes(p.provider) ? `${p.provider} sign-in is not configured yet` : undefined}
+                className="flex h-11 w-full items-center justify-center gap-2.5 rounded-[10px] border border-line bg-paper2 text-[13px] font-medium text-ink transition-all duration-300 hover:border-ink/30 hover:bg-card active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {p.icon}
                 {p.label}
