@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "./app-shell";
-import { MatchBadge, PersonPhoto, SourceBadge } from "./shared";
+import { Button, EASE, MatchBadge, PersonPhoto, SourceBadge, fieldCls, labelCls } from "./shared";
 import { GENDERS, INDIAN_STATES, SEARCH_RESULTS, SEARCH_TIPS } from "@/lib/khoj/data";
 import { useKhoj } from "@/lib/khoj/store";
 import { cn } from "@/lib/utils";
@@ -29,11 +29,11 @@ function Select({
 }) {
   return (
     <div className="relative">
-      <label className="text-[12px] font-medium text-ink-2">{label}</label>
+      <label className={labelCls}>{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full appearance-none rounded-xl border border-line-2 bg-white px-4 py-3 pr-9 text-[13.5px] outline-none transition-all focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+        className={fieldCls + " mt-2 appearance-none pr-9"}
       >
         {options.map((o) => (
           <option key={o}>{o}</option>
@@ -61,10 +61,10 @@ export function SearchPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+          <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
             Search for a missing person
           </h1>
-          <p className="mt-2 text-[13.5px] text-ink-soft">
+          <p className="mt-2.5 text-[13.5px] text-ink-soft">
             Search across government records, NGOs and public sources.
           </p>
         </motion.div>
@@ -73,17 +73,17 @@ export function SearchPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-7 rounded-[22px] border border-line bg-white/80 p-6"
+          className="mt-8 rounded-2xl border border-line bg-paper-2 p-6"
         >
           {/* tabs */}
-          <div className="flex gap-6 border-b border-line">
+          <div className="flex gap-7 border-b border-line">
             {(["basic", "advanced"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  "relative pb-3 text-[13px] transition-colors",
-                  tab === t ? "font-semibold text-ink" : "text-ink-faint hover:text-ink-2"
+                  "micro relative pb-3 !text-[10px] normal-case tracking-[0.04em] transition-colors",
+                  tab === t ? "font-medium text-ink" : "text-ink-faint hover:text-ink-2"
                 )}
               >
                 {t === "basic" ? "Basic Search" : "Advanced Search"}
@@ -109,7 +109,7 @@ export function SearchPage() {
                   className="space-y-4"
                 >
                   <div>
-                    <label htmlFor="s-name" className="text-[12px] font-medium text-ink-2">
+                    <label htmlFor="s-name" className={labelCls}>
                       Name
                     </label>
                     <input
@@ -117,12 +117,12 @@ export function SearchPage() {
                       value={filters.name}
                       onChange={(e) => setFilters({ name: e.target.value })}
                       placeholder="Enter name"
-                      className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                      className={fieldCls + " mt-2"}
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div>
-                      <label htmlFor="s-age" className="text-[12px] font-medium text-ink-2">
+                      <label htmlFor="s-age" className={labelCls}>
                         Age
                       </label>
                       <input
@@ -131,7 +131,7 @@ export function SearchPage() {
                         onChange={(e) => setFilters({ age: e.target.value })}
                         placeholder="e.g. 26"
                         inputMode="numeric"
-                        className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                        className={fieldCls + " mt-2 tabular"}
                       />
                     </div>
                     <Select
@@ -148,7 +148,7 @@ export function SearchPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="s-city" className="text-[12px] font-medium text-ink-2">
+                    <label htmlFor="s-city" className={labelCls}>
                       City / Location
                     </label>
                     <input
@@ -156,7 +156,7 @@ export function SearchPage() {
                       value={filters.city}
                       onChange={(e) => setFilters({ city: e.target.value })}
                       placeholder="e.g. Mumbai"
-                      className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                      className={fieldCls + " mt-2"}
                     />
                   </div>
                 </motion.div>
@@ -184,38 +184,33 @@ export function SearchPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="s-desc" className="text-[12px] font-medium text-ink-2">
+                    <label htmlFor="s-desc" className={labelCls}>
                       Distinguishing details
                     </label>
                     <textarea
                       id="s-desc"
                       rows={4}
                       placeholder="Language, marks, clothing, items they carry…"
-                      className="mt-1.5 w-full resize-none rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                      className={fieldCls + " mt-2 resize-none"}
                     />
                   </div>
                   <div>
-                    <label htmlFor="s-date" className="text-[12px] font-medium text-ink-2">
+                    <label htmlFor="s-date" className={labelCls}>
                       Last seen around
                     </label>
                     <input
                       id="s-date"
                       type="date"
-                      className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                      className={fieldCls + " mt-2 tabular"}
                     />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <motion.button
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.99 }}
-              type="submit"
-              className="w-full rounded-full bg-ink py-3.5 text-[13.5px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-colors hover:bg-black"
-            >
+            <Button type="submit" className="w-full !py-3.5" magnetic>
               Search
-            </motion.button>
+            </Button>
           </form>
         </motion.div>
 
@@ -224,9 +219,9 @@ export function SearchPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-5 rounded-[22px] border border-line bg-white/60 p-5"
+          className="mt-5 rounded-2xl border border-line bg-paper-2 p-5"
         >
-          <div className="text-[13px] font-semibold">Tips</div>
+          <div className="text-[13px] font-medium text-ink">Tips</div>
           <ul className="mt-3 space-y-2.5">
             {SEARCH_TIPS.map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-[12.5px] leading-relaxed text-ink-soft">
@@ -261,11 +256,11 @@ export function SearchResultsPage() {
           <div>
             <button
               onClick={() => navigate("search")}
-              className="flex items-center gap-1.5 text-[12.5px] text-ink-soft transition-colors hover:text-ink"
+              className="micro flex items-center gap-1.5 !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to search
             </button>
-            <h1 className="mt-3 text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+            <h1 className="display-xl mt-3 text-[clamp(30px,3.4vw,40px)]">
               Search results
             </h1>
             <p className="mt-1.5 text-[13.5px] text-ink-soft">
@@ -276,7 +271,7 @@ export function SearchResultsPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[12.5px] font-medium transition-all",
-              showFilters ? "border-ink bg-ink text-[#f4f2ee]" : "border-line-2 bg-white hover:border-ink/40"
+              showFilters ? "border-ink bg-ink text-paper" : "border-line-2 bg-paper-2 hover:border-ink/40"
             )}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" /> Filter
@@ -291,15 +286,15 @@ export function SearchResultsPage() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-white/70 p-4">
-                <span className="text-[12px] text-ink-faint">Minimum match:</span>
+              <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-paper-2 p-4">
+                <span className="micro !text-[9px] text-ink-faint">Minimum match:</span>
                 {[0, 50, 60, 70].map((m) => (
                   <button
                     key={m}
                     onClick={() => setMin(m)}
                     className={cn(
-                      "rounded-full px-3 py-1.5 text-[11.5px] font-medium transition-colors",
-                      min === m ? "bg-ink text-[#f4f2ee]" : "border border-line-2 text-ink-soft hover:border-ink/40"
+                      "tabular rounded-full px-3 py-1.5 text-[11.5px] font-medium transition-colors",
+                      min === m ? "bg-ink text-paper" : "border border-line-2 text-ink-soft hover:border-ink/40"
                     )}
                   >
                     {m === 0 ? "All" : `${m}%+`}
@@ -316,20 +311,19 @@ export function SearchResultsPage() {
               key={p.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07, duration: 0.45 }}
-              whileHover={{ y: -2 }}
-              className="group flex flex-col gap-4 rounded-[20px] border border-line bg-white/80 p-4 transition-all hover:border-ink/25 hover:shadow-[0_18px_40px_-24px_rgba(20,19,17,0.4)] sm:flex-row sm:items-center"
+              transition={{ delay: i * 0.07, duration: 0.5, ease: EASE }}
+              className="group flex flex-col gap-4 rounded-2xl border border-line bg-paper-2 p-4 transition-colors hover:border-ink/30 sm:flex-row sm:items-center"
             >
               <PersonPhoto
                 photo={p.photo}
                 name={p.name}
-                className="h-[74px] w-[74px] shrink-0 rounded-2xl object-cover"
+                className="h-[74px] w-[74px] shrink-0 rounded-xl object-cover"
               />
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <MatchBadge pct={p.match} />
-                  <span className="text-[14.5px] font-semibold tracking-tight">{p.name}</span>
+                  <span className="text-[14.5px] font-medium tracking-[-0.01em]">{p.name}</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-soft">
                   <span className="inline-flex items-center gap-1.5">
@@ -346,7 +340,7 @@ export function SearchResultsPage() {
                 <SourceBadge source={p.source} />
                 <button
                   onClick={() => openCase(p.id)}
-                  className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-white px-4 py-2 text-[12px] font-medium transition-all hover:border-ink hover:bg-ink hover:text-[#f4f2ee]"
+                  className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-[12px] font-medium transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
                 >
                   View details <ArrowRight className="h-3 w-3" />
                 </button>

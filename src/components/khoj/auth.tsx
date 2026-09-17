@@ -3,7 +3,15 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { HandNote, Logo } from "./shared";
+import {
+  Button,
+  EASE,
+  HandNote,
+  Logo,
+  OrDivider,
+  fieldCls,
+  labelCls,
+} from "./shared";
 import { useKhoj } from "@/lib/khoj/store";
 
 function GoogleIcon() {
@@ -37,49 +45,73 @@ function AppleIcon() {
   );
 }
 
+function SocialRow({ onPick }: { onPick: () => void }) {
+  return (
+    <div className="space-y-2.5">
+      <button
+        onClick={onPick}
+        className="flex w-full items-center justify-center gap-2.5 rounded-full border border-ink/15 py-3 text-[13px] font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
+      >
+        <GoogleIcon /> Continue with Google
+      </button>
+      <button
+        onClick={onPick}
+        className="flex w-full items-center justify-center gap-2.5 rounded-full border border-ink/15 py-3 text-[13px] font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
+      >
+        <AppleIcon /> Continue with Apple
+      </button>
+    </div>
+  );
+}
+
 function AuthShell({
   side,
-  note,
+  quote,
+  caption,
   children,
   onBack,
 }: {
   side: "mountains" | "person";
-  note: string;
+  quote: string;
+  caption: string;
   children: React.ReactNode;
   onBack: () => void;
 }) {
   return (
-    <div className="grid min-h-screen bg-paper lg:grid-cols-[420px_1fr]">
+    <div className="grid min-h-screen bg-paper lg:grid-cols-[440px_1fr]">
       {/* Left image panel */}
       <div className="khoj-grain relative hidden overflow-hidden lg:block">
-        { }
         <img
           src={side === "mountains" ? "/images/auth-mountains.jpg" : "/images/auth-person.jpg"}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-transparent" />
-        <div className="absolute left-7 top-1/2 -translate-y-1/2">
-          <HandNote size={30} rotate={-6} className="max-w-[150px] text-[#f7f5ef] drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]">
-            {note}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-9 pt-40 text-paper">
+          <HandNote size={30} rotate={-5} className="max-w-[220px] text-paper">
+            {quote}
           </HandNote>
-          <span className="mt-4 block h-px w-10 bg-white/60" />
+          <div className="micro mt-6 !text-[9px] text-paper/70">{caption}</div>
         </div>
       </div>
 
       {/* Right form panel */}
-      <div className="relative flex min-h-screen flex-col px-6 py-7 sm:px-12">
+      <div className="relative flex min-h-screen flex-col px-6 py-6 sm:px-12">
         <div className="flex items-center justify-between">
           <Logo tagline={false} onClick={onBack} />
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-[12.5px] text-ink-soft transition-colors hover:text-ink"
+            className="micro flex items-center gap-2 !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
         </div>
-        <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-10">
+        <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-12">
           {children}
+        </div>
+        <div className="mx-auto w-full max-w-[400px]">
+          <div className="micro !text-[8.5px] text-ink-faint">
+            © 2026 Khoj — People. Connected.
+          </div>
         </div>
       </div>
     </div>
@@ -109,31 +141,42 @@ export function SignIn() {
     }, 700);
   };
 
+  const social = () => {
+    setAuth({ authEmail: "meet@example.com" });
+    signInDemo();
+    navigate("dashboard");
+  };
+
   return (
-    <AuthShell side="person" note={"Hope travels further together."} onBack={() => navigate("landing")}>
+    <AuthShell
+      side="person"
+      quote="Hope travels further together."
+      caption="Fig. 02 — On the way home"
+      onBack={() => navigate("landing")}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.65, ease: [0.21, 0.65, 0.35, 1] }}
+        transition={{ duration: 0.7, ease: EASE }}
       >
         <div className="flex items-center justify-end text-[12.5px] text-ink-soft">
           <span className="mr-1.5">New here?</span>
           <button
             onClick={() => navigate("signup")}
-            className="font-semibold text-ink underline-offset-4 hover:underline"
+            className="link-sweep font-semibold text-ink"
           >
             Create an account
           </button>
         </div>
 
-        <h1 className="mt-8 text-[30px] font-semibold tracking-[-0.02em]">Welcome back</h1>
-        <p className="mt-2 text-[13.5px] text-ink-soft">
+        <h1 className="display-xl mt-9 text-[42px]">Welcome back</h1>
+        <p className="mt-2.5 text-[13.5px] text-ink-soft">
           Sign in to continue your journey.
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
+        <form onSubmit={submit} className="mt-9 space-y-5" noValidate>
           <div>
-            <label htmlFor="si-email" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="si-email" className={labelCls}>
               Email
             </label>
             <input
@@ -143,12 +186,12 @@ export function SignIn() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+              className={fieldCls + " mt-2"}
             />
           </div>
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="si-pass" className="text-[12px] font-medium text-ink-2">
+              <label htmlFor="si-pass" className={labelCls}>
                 Password
               </label>
               <button
@@ -159,7 +202,7 @@ export function SignIn() {
                 Forgot password?
               </button>
             </div>
-            <div className="relative mt-1.5">
+            <div className="relative mt-2">
               <input
                 id="si-pass"
                 type={show ? "text" : "password"}
@@ -167,56 +210,37 @@ export function SignIn() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-line-2 bg-white px-4 py-3 pr-11 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                className={fieldCls + " pr-11"}
               />
               <button
                 type="button"
                 onClick={() => setShow(!show)}
                 aria-label={show ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-ink"
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          {err && <p className="text-[12px] text-red-600">{err}</p>}
+          {err && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border-l-2 border-[#b3402f] pl-3 text-[12px] text-[#b3402f]"
+            >
+              {err}
+            </motion.p>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-ink py-3.5 text-[13.5px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-all hover:bg-black hover:shadow-[0_18px_36px_-14px_rgba(20,19,17,0.65)] active:scale-[0.99] disabled:opacity-60"
-          >
+          <Button type="submit" disabled={loading} className="w-full !py-3.5" magnetic>
             {loading ? "Signing in…" : "Sign in"}
-          </button>
+          </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3 text-[11px] text-ink-faint">
-          <span className="h-px flex-1 bg-line-2" /> or <span className="h-px flex-1 bg-line-2" />
-        </div>
+        <OrDivider />
 
-        <div className="space-y-3">
-          <button
-            onClick={() => {
-              setAuth({ authEmail: "meet@example.com" });
-              signInDemo();
-              navigate("dashboard");
-            }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-line-2 bg-white py-3 text-[13px] font-medium transition-all hover:border-ink/40 hover:bg-[#faf9f6]"
-          >
-            <GoogleIcon /> Continue with Google
-          </button>
-          <button
-            onClick={() => {
-              setAuth({ authEmail: "meet@example.com" });
-              signInDemo();
-              navigate("dashboard");
-            }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-line-2 bg-white py-3 text-[13px] font-medium transition-all hover:border-ink/40 hover:bg-[#faf9f6]"
-          >
-            <AppleIcon /> Continue with Apple
-          </button>
-        </div>
+        <SocialRow onPick={social} />
       </motion.div>
     </AuthShell>
   );
@@ -246,33 +270,42 @@ export function SignUp() {
     }, 700);
   };
 
+  const social = () => {
+    setAuth({ authEmail: "meet@example.com" });
+    signUp("Meet Pardeshi", "meet@example.com");
+    navigate("onboarding");
+  };
+
   return (
-    <AuthShell side="mountains" note={"Some people. Brighter tomorrows."} onBack={() => navigate("landing")}>
+    <AuthShell
+      side="mountains"
+      quote="Some people. Brighter tomorrows."
+      caption="Fig. 03 — The road ahead"
+      onBack={() => navigate("landing")}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.65, ease: [0.21, 0.65, 0.35, 1] }}
+        transition={{ duration: 0.7, ease: EASE }}
       >
         <div className="flex items-center justify-end text-[12.5px] text-ink-soft">
           <span className="mr-1.5">Already have an account?</span>
           <button
             onClick={() => navigate("signin")}
-            className="font-semibold text-ink underline-offset-4 hover:underline"
+            className="link-sweep font-semibold text-ink"
           >
             Sign in
           </button>
         </div>
 
-        <h1 className="mt-8 text-[30px] font-semibold tracking-[-0.02em]">
-          Create your account
-        </h1>
-        <p className="mt-2 text-[13.5px] text-ink-soft">
+        <h1 className="display-xl mt-9 text-[42px]">Create account</h1>
+        <p className="mt-2.5 text-[13.5px] text-ink-soft">
           Join thousands helping to reunite people.
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
+        <form onSubmit={submit} className="mt-9 space-y-5" noValidate>
           <div>
-            <label htmlFor="su-name" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="su-name" className={labelCls}>
               Full name
             </label>
             <input
@@ -282,11 +315,11 @@ export function SignUp() {
               placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+              className={fieldCls + " mt-2"}
             />
           </div>
           <div>
-            <label htmlFor="su-email" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="su-email" className={labelCls}>
               Email
             </label>
             <input
@@ -296,14 +329,14 @@ export function SignUp() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+              className={fieldCls + " mt-2"}
             />
           </div>
           <div>
-            <label htmlFor="su-pass" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="su-pass" className={labelCls}>
               Password
             </label>
-            <div className="relative mt-1.5">
+            <div className="relative mt-2">
               <input
                 id="su-pass"
                 type={show ? "text" : "password"}
@@ -311,58 +344,39 @@ export function SignUp() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-line-2 bg-white px-4 py-3 pr-11 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                className={fieldCls + " pr-11"}
               />
               <button
                 type="button"
                 onClick={() => setShow(!show)}
                 aria-label={show ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-ink"
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          {err && <p className="text-[12px] text-red-600">{err}</p>}
+          {err && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border-l-2 border-[#b3402f] pl-3 text-[12px] text-[#b3402f]"
+            >
+              {err}
+            </motion.p>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-ink py-3.5 text-[13.5px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-all hover:bg-black hover:shadow-[0_18px_36px_-14px_rgba(20,19,17,0.65)] active:scale-[0.99] disabled:opacity-60"
-          >
+          <Button type="submit" disabled={loading} className="w-full !py-3.5" magnetic>
             {loading ? "Creating account…" : "Create account"}
-          </button>
+          </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3 text-[11px] text-ink-faint">
-          <span className="h-px flex-1 bg-line-2" /> or <span className="h-px flex-1 bg-line-2" />
-        </div>
+        <OrDivider />
 
-        <div className="space-y-3">
-          <button
-            onClick={() => {
-              setAuth({ authEmail: "meet@example.com" });
-              signUp("Meet Pardeshi", "meet@example.com");
-              navigate("onboarding");
-            }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-line-2 bg-white py-3 text-[13px] font-medium transition-all hover:border-ink/40 hover:bg-[#faf9f6]"
-          >
-            <GoogleIcon /> Continue with Google
-          </button>
-          <button
-            onClick={() => {
-              setAuth({ authEmail: "meet@example.com" });
-              signUp("Meet Pardeshi", "meet@example.com");
-              navigate("onboarding");
-            }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-line-2 bg-white py-3 text-[13px] font-medium transition-all hover:border-ink/40 hover:bg-[#faf9f6]"
-          >
-            <AppleIcon /> Continue with Apple
-          </button>
-        </div>
+        <SocialRow onPick={social} />
 
-        <p className="mt-6 text-center text-[11.5px] text-ink-faint">
+        <p className="mt-7 text-center text-[11.5px] leading-relaxed text-ink-faint">
           By signing up, you agree to our{" "}
           <span className="underline underline-offset-2">Terms</span> and{" "}
           <span className="underline underline-offset-2">Privacy Policy</span>

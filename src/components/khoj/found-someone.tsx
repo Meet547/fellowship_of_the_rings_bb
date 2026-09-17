@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "./app-shell";
-import { Stepper } from "./shared";
+import { Button, EASE, EASE_INOUT, Stepper, fieldCls, labelCls } from "./shared";
 import { GENDERS, REPORT_CHIPS, REPORT_STEPS } from "@/lib/khoj/data";
 import { useKhoj } from "@/lib/khoj/store";
 import { cn } from "@/lib/utils";
@@ -64,10 +64,10 @@ function Step1Share() {
 
   return (
     <div>
-      <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+      <h1 className="display-xl max-w-[560px] text-[clamp(30px,3.4vw,40px)]">
         Help us identify and reunite this person.
       </h1>
-      <p className="mt-2.5 max-w-[540px] text-[13.5px] text-ink-soft">
+      <p className="mt-3 max-w-[540px] text-[13.5px] text-ink-soft">
         Upload a photo and share any details you know. Even small information can help.
       </p>
 
@@ -94,7 +94,7 @@ function Step1Share() {
             whileHover={{ y: -2 }}
             onClick={() => fileRef.current?.click()}
             className={cn(
-              "upload-dash grid aspect-[4/3] w-full place-items-center rounded-[22px] border-2 border-dashed border-line-2 bg-white/60 transition-colors hover:border-ink/40",
+              "upload-dash grid aspect-[4/3] w-full place-items-center rounded-2xl border-2 border-dashed border-line-2 bg-paper-2 transition-colors hover:border-ink/40",
               preview && "border-solid border-line"
             )}
           >
@@ -104,18 +104,18 @@ function Step1Share() {
                 <img
                   src={preview}
                   alt="Uploaded person"
-                  className="h-full w-full rounded-2xl object-cover"
+                  className="h-full w-full rounded-xl object-cover"
                 />
-                <span className="absolute bottom-5 right-5 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-medium shadow">
+                <span className="micro absolute bottom-5 right-5 rounded-full bg-paper-2/95 px-3 py-1.5 !text-[8.5px] normal-case tracking-[0.06em] shadow-sm">
                   {foundReport.photoName}
                 </span>
               </span>
             ) : (
               <span className="px-6 text-center">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ink/[0.05]">
-                  <ImageIcon className="h-6 w-6 text-ink-2" strokeWidth={1.5} />
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-ink/12 bg-paper">
+                  <ImageIcon className="h-6 w-6 text-ink-2" strokeWidth={1.4} />
                 </span>
-                <span className="mt-4 block text-[14px] font-semibold">Upload a photo</span>
+                <span className="mt-4 block text-[14px] font-medium text-ink">Upload a photo</span>
                 <span className="mt-1 block text-[12px] leading-relaxed text-ink-faint">
                   Click to upload or drag and drop
                   <br />
@@ -128,38 +128,38 @@ function Step1Share() {
           <div className="mt-3 grid grid-cols-2 gap-3">
             <button
               onClick={() => cameraRef.current?.click()}
-              className="flex items-center justify-center gap-2 rounded-full border border-line-2 bg-white py-2.5 text-[12.5px] font-medium transition-all hover:border-ink/40"
+              className="flex items-center justify-center gap-2 rounded-full border border-ink/15 py-2.5 text-[12.5px] font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
             >
-              <Camera className="h-4 w-4 text-ink-2" /> Take photo
+              <Camera className="h-4 w-4" strokeWidth={1.6} /> Take photo
             </button>
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex items-center justify-center gap-2 rounded-full border border-line-2 bg-white py-2.5 text-[12.5px] font-medium transition-all hover:border-ink/40"
+              className="flex items-center justify-center gap-2 rounded-full border border-ink/15 py-2.5 text-[12.5px] font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
             >
-              <Upload className="h-4 w-4 text-ink-2" /> Upload from device
+              <Upload className="h-4 w-4" strokeWidth={1.6} /> Upload from device
             </button>
           </div>
         </div>
 
         {/* Describe */}
         <div className="flex flex-col">
-          <label className="text-[13px] font-semibold">Or describe the person</label>
-          <div className="mt-3 flex-1 rounded-[22px] border border-line-2 bg-white transition-colors focus-within:border-ink/40">
+          <label className="text-[13px] font-medium text-ink">Or describe the person</label>
+          <div className="mt-3 flex-1 rounded-2xl border border-line-2 bg-paper-2 transition-colors focus-within:border-ink">
             <textarea
               ref={taRef}
               value={foundReport.description}
               onChange={(e) => setFoundReport({ description: e.target.value })}
               placeholder="You can also describe them here (voice or text)..."
               rows={7}
-              className="w-full resize-none rounded-t-[22px] bg-transparent px-5 pt-5 text-[13.5px] leading-relaxed outline-none placeholder:text-ink-faint"
+              className="w-full resize-none rounded-t-2xl bg-transparent px-5 pt-5 text-[13.5px] leading-relaxed outline-none placeholder:text-ink-faint"
             />
             <div className="flex justify-end gap-2 px-4 pb-4">
               <button
                 onClick={() => setListening(!listening)}
                 aria-label="Voice input"
                 className={cn(
-                  "grid h-10 w-10 place-items-center rounded-full border transition-all",
-                  listening ? "border-ink bg-ink text-[#f4f2ee]" : "border-line-2 text-ink-2 hover:border-ink/40"
+                  "grid h-10 w-10 place-items-center rounded-full border transition-all duration-300",
+                  listening ? "border-ink bg-ink text-paper" : "border-line-2 text-ink-2 hover:border-ink/40"
                 )}
               >
                 <Mic className="h-4 w-4" strokeWidth={1.7} />
@@ -167,7 +167,7 @@ function Step1Share() {
               <button
                 onClick={() => taRef.current?.focus()}
                 aria-label="Confirm text"
-                className="grid h-10 w-10 place-items-center rounded-full bg-ink text-[#f4f2ee]"
+                className="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper transition-colors hover:bg-black"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -181,7 +181,7 @@ function Step1Share() {
                   setFoundReport({ description: c });
                   taRef.current?.focus();
                 }}
-                className="rounded-full border border-line-2 bg-white px-3.5 py-2 text-[11.5px] text-ink-soft transition-all hover:border-ink/40 hover:text-ink"
+                className="rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[11.5px] text-ink-soft transition-all duration-300 hover:border-ink hover:text-ink"
               >
                 {c}
               </button>
@@ -214,15 +214,14 @@ function Step1Share() {
       </AnimatePresence>
 
       <div className="mt-8 flex items-center justify-end">
-        <motion.button
-          whileHover={{ y: -1 }}
-          whileTap={{ scale: 0.98 }}
+        <Button
           onClick={() => setFoundStep(1)}
           disabled={!foundReport.photoName && !foundReport.description.trim()}
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-opacity hover:bg-black disabled:opacity-30"
+          magnetic
+          icon={<ArrowRight className="h-3.5 w-3.5" />}
         >
-          Next <ArrowRight className="h-3.5 w-3.5" />
-        </motion.button>
+          Next
+        </Button>
       </div>
     </div>
   );
@@ -231,28 +230,28 @@ function Step1Share() {
 function Step2Details() {
   const { foundReport, setFoundReport, setFoundStep } = useKhoj();
   const field =
-    "mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5";
+    fieldCls;
 
   return (
     <div>
-      <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+      <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
         A few more details
       </h1>
-      <p className="mt-2.5 text-[13.5px] text-ink-soft">
+      <p className="mt-3 text-[13.5px] text-ink-soft">
         These help NGOs and authorities match faster. Fill what you can.
       </p>
 
-      <div className="mt-8 max-w-[640px] space-y-4">
+      <div className="mt-8 max-w-[640px] space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="relative">
-            <label htmlFor="f-age" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="f-age" className={labelCls}>
               Approximate age
             </label>
             <select
               id="f-age"
               value={foundReport.ageRange}
               onChange={(e) => setFoundReport({ ageRange: e.target.value })}
-              className={field + " appearance-none pr-9"}
+              className={field + " mt-2 appearance-none pr-9"}
             >
               {AGE_RANGES.map((a) => (
                 <option key={a} disabled={a === AGE_RANGES[0]}>
@@ -263,14 +262,14 @@ function Step2Details() {
             <span className="pointer-events-none absolute bottom-3.5 right-3.5 text-ink-faint">▾</span>
           </div>
           <div className="relative">
-            <label htmlFor="f-gender" className="text-[12px] font-medium text-ink-2">
+            <label htmlFor="f-gender" className={labelCls}>
               Gender
             </label>
             <select
               id="f-gender"
               value={foundReport.gender}
               onChange={(e) => setFoundReport({ gender: e.target.value })}
-              className={field + " appearance-none pr-9"}
+              className={field + " mt-2 appearance-none pr-9"}
             >
               <option disabled>Select</option>
               {GENDERS.filter((g) => g !== "Any").map((g) => (
@@ -282,7 +281,7 @@ function Step2Details() {
         </div>
 
         <div>
-          <label htmlFor="f-loc" className="text-[12px] font-medium text-ink-2">
+          <label htmlFor="f-loc" className={labelCls}>
             Where did you find them?
           </label>
           <input
@@ -290,12 +289,12 @@ function Step2Details() {
             value={foundReport.foundLocation}
             onChange={(e) => setFoundReport({ foundLocation: e.target.value })}
             placeholder="Enter location"
-            className={field}
+            className={field + " mt-2"}
           />
         </div>
 
         <div>
-          <label htmlFor="f-say" className="text-[12px] font-medium text-ink-2">
+          <label htmlFor="f-say" className={labelCls}>
             What can they tell you?
           </label>
           <textarea
@@ -304,12 +303,12 @@ function Step2Details() {
             value={foundReport.theySay}
             onChange={(e) => setFoundReport({ theySay: e.target.value })}
             placeholder="E.g. name, language, hometown, place, any details"
-            className={field + " resize-none"}
+            className={field + " mt-2 resize-none"}
           />
         </div>
 
         <div>
-          <label htmlFor="f-other" className="text-[12px] font-medium text-ink-2">
+          <label htmlFor="f-other" className={labelCls}>
             Any other details?
           </label>
           <textarea
@@ -318,7 +317,7 @@ function Step2Details() {
             value={foundReport.otherDetails}
             onChange={(e) => setFoundReport({ otherDetails: e.target.value })}
             placeholder="Clothing, condition, objects, etc."
-            className={field + " resize-none"}
+            className={field + " mt-2 resize-none"}
           />
         </div>
       </div>
@@ -326,25 +325,24 @@ function Step2Details() {
       <div className="mt-8 flex items-center justify-between">
         <button
           onClick={() => setFoundStep(0)}
-          className="text-[13px] text-ink-soft transition-colors hover:text-ink"
+          className="micro !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
         >
           ← Back
         </button>
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => useKhoj.getState().navigate("dashboard")}
-            className="rounded-full border border-line-2 bg-white px-5 py-3 text-[13px] font-medium transition-all hover:border-ink/40"
           >
             Cancel
-          </button>
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
+          </Button>
+          <Button
             onClick={() => setFoundStep(2)}
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-colors hover:bg-black"
+            magnetic
+            icon={<ArrowRight className="h-3.5 w-3.5" />}
           >
-            Next <ArrowRight className="h-3.5 w-3.5" />
-          </motion.button>
+            Next
+          </Button>
         </div>
       </div>
     </div>
@@ -365,18 +363,18 @@ function Step3Review() {
 
   return (
     <div>
-      <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+      <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
         Review before submitting
       </h1>
-      <p className="mt-2.5 text-[13.5px] text-ink-soft">
+      <p className="mt-3 text-[13.5px] text-ink-soft">
         Please confirm the information below. You can go back and edit anything.
       </p>
 
-      <div className="mt-8 max-w-[640px] rounded-[22px] border border-line bg-white/80 p-6">
-        <div className="divide-y divide-line/80">
+      <div className="mt-8 max-w-[640px] rounded-2xl border border-line bg-paper-2 p-6">
+        <div className="divide-y divide-line">
           {rows.map(([k, v]) => (
             <div key={k} className="flex items-start justify-between gap-6 py-3 first:pt-0 last:pb-0">
-              <span className="shrink-0 text-[12px] text-ink-faint">{k}</span>
+              <span className="micro shrink-0 !text-[9px] normal-case tracking-[0.08em] text-ink-faint">{k}</span>
               <span className="max-w-[380px] text-right text-[13px] font-medium">{v}</span>
             </div>
           ))}
@@ -386,18 +384,17 @@ function Step3Review() {
       <div className="mt-8 flex items-center justify-between">
         <button
           onClick={() => setFoundStep(1)}
-          className="text-[13px] text-ink-soft transition-colors hover:text-ink"
+          className="micro !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
         >
           ← Back
         </button>
-        <motion.button
-          whileHover={{ y: -1 }}
-          whileTap={{ scale: 0.98 }}
+        <Button
           onClick={() => setFoundStep(3)}
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-colors hover:bg-black"
+          magnetic
+          icon={<ArrowRight className="h-3.5 w-3.5" />}
         >
-          Submit report <ArrowRight className="h-3.5 w-3.5" />
-        </motion.button>
+          Submit report
+        </Button>
       </div>
     </div>
   );
@@ -418,41 +415,41 @@ function Step4Submit() {
         <CheckCircle2 className="h-8 w-8 text-match-green-text" strokeWidth={1.6} />
       </motion.span>
 
-      <h1 className="mt-6 text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+      <h1 className="display-xl mt-6 text-[clamp(30px,3.4vw,40px)]">
         Thank you. This matters.
       </h1>
-      <p className="mx-auto mt-2.5 max-w-[440px] text-[13.5px] leading-relaxed text-ink-soft">
+      <p className="mx-auto mt-3 max-w-[440px] text-[13.5px] leading-relaxed text-ink-soft">
         Your report is now with our network of NGOs and authorities. Khoj will try to
         identify this person and reach out to their family.
       </p>
 
-      <div className="mt-7 flex items-center gap-3 rounded-full border border-line bg-white px-5 py-3">
-        <PartyPopper className="h-4 w-4 text-ink-2" />
-        <span className="text-[13px] font-semibold">Case {caseId} created</span>
-        <span className="rounded-full bg-match-amber px-2.5 py-1 text-[11px] font-semibold text-match-amber-text">
+      <div className="mt-7 flex items-center gap-3 rounded-full border border-line bg-paper-2 px-5 py-3">
+        <PartyPopper className="h-4 w-4 text-ink-2" strokeWidth={1.6} />
+        <span className="font-mono text-[11.5px] font-medium tracking-[0.04em]">Case {caseId} created</span>
+        <span className="rounded-full bg-match-amber px-2.5 py-1 text-[11px] font-medium text-match-amber-text">
           In Review
         </span>
       </div>
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-        <button
+        <Button
           onClick={() => {
             resetFound();
             navigate("dashboard");
           }}
-          className="rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] transition-colors hover:bg-black"
+          magnetic
         >
           Back to dashboard
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => {
             resetFound();
             navigate("cases");
           }}
-          className="rounded-full border border-line-2 bg-white px-6 py-3 text-[13px] font-medium transition-all hover:border-ink/40"
         >
           View my cases
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -477,8 +474,8 @@ export default function FoundSomeone() {
             key={foundStep}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.35, ease: [0.21, 0.65, 0.35, 1] }}
+            exit={{ opacity: 0, y: -14, transition: { duration: 0.25, ease: EASE_INOUT } }}
+            transition={{ duration: 0.5, ease: EASE }}
           >
             {foundStep === 0 && <Step1Share />}
             {foundStep === 1 && <Step2Details />}

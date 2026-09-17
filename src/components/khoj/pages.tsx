@@ -18,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { AppShell } from "./app-shell";
-import { HandNote, PersonPhoto } from "./shared";
+import { Button, EASE, HandNote, PersonPhoto } from "./shared";
 import { RECENT_CASES, SEARCH_RESULTS } from "@/lib/khoj/data";
 import { useKhoj } from "@/lib/khoj/store";
 
@@ -41,10 +41,10 @@ export function Profile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+          <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
             Your Profile
           </h1>
-          <p className="mt-2 text-[13.5px] text-ink-soft">
+          <p className="mt-2.5 text-[13.5px] text-ink-soft">
             Manage your account and preferences.
           </p>
         </motion.div>
@@ -54,15 +54,15 @@ export function Profile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-[22px] border border-line bg-white/80 p-6"
+            className="rounded-2xl border border-line bg-paper-2 p-6"
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-ink text-[14px] font-bold text-[#f4f2ee]">
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-ink font-mono text-[13px] font-medium tracking-[0.05em] text-paper">
                   {user?.initials ?? "MP"}
                 </span>
                 <div>
-                  <div className="text-[15.5px] font-semibold">{user?.fullName ?? "Meet Pardeshi"}</div>
+                  <div className="text-[15.5px] font-medium">{user?.fullName ?? "Meet Pardeshi"}</div>
                   <div className="text-[12.5px] text-ink-faint">
                     {user?.email ?? "meet@example.com"} · {user?.role ?? "Family Member"}
                   </div>
@@ -70,9 +70,9 @@ export function Profile() {
               </div>
               <button
                 onClick={() => useKhoj.getState().navigate("onboarding")}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line-2 bg-white px-4 py-2 text-[12px] font-medium transition-all hover:border-ink/40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-[12px] font-medium transition-all duration-300 hover:border-ink"
               >
-                <Pencil className="h-3.5 w-3.5" /> Edit
+                <Pencil className="h-3.5 w-3.5" strokeWidth={1.6} /> Edit
               </button>
             </div>
 
@@ -84,8 +84,8 @@ export function Profile() {
                   className="group flex w-full items-center justify-between py-4 text-left"
                 >
                   <span className="flex items-center gap-3.5">
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-ink/[0.05] transition-colors group-hover:bg-ink/[0.09]">
-                      <r.icon className="h-4 w-4 text-ink-2" strokeWidth={1.7} />
+                    <span className="grid h-9 w-9 place-items-center rounded-full border border-line-2 bg-paper transition-colors group-hover:border-ink/30">
+                      <r.icon className="h-4 w-4 text-ink-2" strokeWidth={1.6} />
                     </span>
                     <span>
                       <span className="block text-[13.5px] font-medium">{r.title}</span>
@@ -99,9 +99,9 @@ export function Profile() {
 
             <button
               onClick={signOut}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-[12.5px] font-medium text-red-600 transition-colors hover:bg-red-100"
+              className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#e5c9c3] bg-[#f9efec] px-5 py-2.5 text-[12.5px] font-medium text-[#b3402f] transition-colors hover:bg-[#f4e3df]"
             >
-              <LogOut className="h-3.5 w-3.5" /> Sign out
+              <LogOut className="h-3.5 w-3.5" strokeWidth={1.6} /> Sign out
             </button>
           </motion.div>
 
@@ -109,7 +109,7 @@ export function Profile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.18 }}
-            className="khoj-grain relative min-h-[320px] overflow-hidden rounded-[22px] shadow-[0_20px_44px_-24px_rgba(20,19,17,0.4)]"
+            className="khoj-grain relative min-h-[320px] overflow-hidden rounded-2xl"
           >
             { }
             <img
@@ -148,24 +148,24 @@ export function MyCases() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.4 }}
               onClick={() => openCase(c.id)}
-              className="group flex w-full items-center justify-between gap-4 rounded-[20px] border border-line bg-white/80 p-5 text-left transition-all hover:border-ink/25 hover:shadow-[0_18px_40px_-24px_rgba(20,19,17,0.35)]"
+              className="group flex w-full items-center justify-between gap-4 rounded-2xl border border-line bg-paper-2 p-5 text-left transition-colors hover:border-ink/30"
             >
               <div className="flex min-w-0 items-center gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink/[0.05]">
-                  <FileText className="h-4 w-4 text-ink-2" strokeWidth={1.7} />
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line-2 bg-paper">
+                  <FileText className="h-4 w-4 text-ink-2" strokeWidth={1.6} />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-[13.5px] font-semibold">{c.id}</div>
+                  <div className="font-mono text-[11px] font-medium tracking-[0.04em]">{c.id}</div>
                   <div className="mt-0.5 truncate text-[12px] text-ink-soft">
                     {c.person} · {c.detail}
                   </div>
                 </div>
               </div>
               <div className="shrink-0 text-right">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS[c.status]}`}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" /> {c.status}
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] font-medium ${STATUS[c.status]}`}>
+                  <span className="h-1 w-1 rounded-full bg-current" /> {c.status}
                 </span>
-                <div className="mt-1 text-[11px] text-ink-faint">Updated {c.updated}</div>
+                <div className="micro mt-1 !text-[8.5px] normal-case tracking-[0.04em] text-ink-faint">Updated {c.updated}</div>
               </div>
             </motion.button>
           )
@@ -191,15 +191,15 @@ export function Messages() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, duration: 0.4 }}
-            className="flex items-start gap-4 rounded-[20px] border border-line bg-white/80 p-5"
+            className="flex items-start gap-4 rounded-2xl border border-line bg-paper-2 p-5"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink/[0.05]">
-              <MessageSquare className="h-4 w-4 text-ink-2" strokeWidth={1.7} />
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line-2 bg-paper">
+              <MessageSquare className="h-4 w-4 text-ink-2" strokeWidth={1.6} />
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-[13.5px] font-semibold">{m.from}</span>
-                <span className="text-[11px] text-ink-faint">{m.time} ago</span>
+                <span className="text-[13.5px] font-medium">{m.from}</span>
+                <span className="micro !text-[8.5px] normal-case tracking-[0.04em] text-ink-faint">{m.time} ago</span>
               </div>
               <p className="mt-1 text-[12.5px] leading-relaxed text-ink-soft">{m.text}</p>
             </div>
@@ -219,21 +219,22 @@ export function SavedPage() {
   return (
     <AppShell active="saved" title="Saved">
       {items.length === 0 ? (
-        <div className="mx-auto flex max-w-[480px] flex-col items-center rounded-[22px] border border-dashed border-line-2 bg-white/50 px-8 py-16 text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-ink/[0.05]">
-            <Bookmark className="h-5 w-5 text-ink-2" strokeWidth={1.6} />
+        <div className="mx-auto flex max-w-[480px] flex-col items-center rounded-2xl border border-dashed border-line-2 bg-paper-2 px-8 py-16 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-full border border-ink/12 bg-paper">
+            <Bookmark className="h-5 w-5 text-ink-2" strokeWidth={1.5} />
           </span>
-          <h2 className="mt-4 text-[16px] font-semibold">Nothing saved yet</h2>
+          <h2 className="mt-4 text-[16px] font-medium">Nothing saved yet</h2>
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-soft">
             When you find a possible match, tap Save on a case and it will appear here
             for quick access.
           </p>
-          <button
+          <Button
             onClick={() => useKhoj.getState().navigate("search")}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[12.5px] font-medium text-[#f4f2ee] transition-colors hover:bg-black"
+            className="mt-5"
+            icon={<Search className="h-3.5 w-3.5" strokeWidth={1.6} />}
           >
-            <Search className="h-3.5 w-3.5" /> Start a search
-          </button>
+            Start a search
+          </Button>
         </div>
       ) : (
         <div className="mx-auto max-w-[820px] space-y-3">
@@ -241,11 +242,11 @@ export function SavedPage() {
             <button
               key={p.id}
               onClick={() => openCase(p.id)}
-              className="flex w-full items-center gap-4 rounded-[20px] border border-line bg-white/80 p-4 text-left transition-all hover:border-ink/25"
+              className="flex w-full items-center gap-4 rounded-2xl border border-line bg-paper-2 p-4 text-left transition-colors hover:border-ink/30"
             >
-              <PersonPhoto photo={p.photo} name={p.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+              <PersonPhoto photo={p.photo} name={p.name} className="h-16 w-16 shrink-0 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
-                <div className="text-[14px] font-semibold">{p.name}</div>
+                <div className="text-[14px] font-medium">{p.name}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-soft">
                   <MapPin className="h-3 w-3" /> {p.location}
                 </div>
@@ -292,18 +293,19 @@ export function Resources() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08, duration: 0.45 }}
             whileHover={{ y: -4 }}
-            className="flex flex-col rounded-[20px] border border-line bg-white/80 p-5"
+            className="flex flex-col rounded-2xl border border-line bg-paper-2 p-5"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-ink/[0.05]">
-              <c.icon className="h-4.5 w-4.5 h-5 w-5 text-ink" strokeWidth={1.6} />
+            <span className="grid h-10 w-10 place-items-center rounded-full border border-line-2 bg-paper">
+              <c.icon className="h-[18px] w-[18px] text-ink" strokeWidth={1.5} />
             </span>
-            <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{c.title}</h3>
+            <h3 className="mt-4 text-[15px] font-medium tracking-[-0.01em]">{c.title}</h3>
             <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-ink-soft">{c.desc}</p>
             <button
               onClick={() => navigate("search")}
-              className="mt-4 inline-flex items-center gap-1.5 self-start text-[12.5px] font-medium text-ink underline-offset-4 hover:underline"
+              className="mt-4 inline-flex items-center gap-1.5 self-start text-[12.5px] font-medium text-ink"
             >
-              {c.action} <ChevronRight className="h-3.5 w-3.5" />
+              <span className="border-b border-ink/30 pb-0.5 transition-colors hover:border-ink">{c.action}</span>
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </motion.div>
         ))}

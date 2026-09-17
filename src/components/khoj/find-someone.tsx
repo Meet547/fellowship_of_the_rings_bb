@@ -21,11 +21,16 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "./app-shell";
 import {
+  Button,
+  EASE,
+  EASE_INOUT,
   HandNote,
   MatchBadge,
   PersonPhoto,
   SourceBadge,
   Stepper,
+  fieldCls,
+  labelCls,
 } from "./shared";
 import {
   DESCRIBE_CHIPS,
@@ -73,10 +78,10 @@ function DescribeStep() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+        <h1 className="display-xl max-w-[560px] text-[clamp(30px,3.4vw,40px)]">
           Tell us about the person you&apos;re looking for.
         </h1>
-        <p className="mt-2.5 max-w-[560px] text-[13.5px] leading-relaxed text-ink-soft">
+        <p className="mt-3 max-w-[560px] text-[13.5px] leading-relaxed text-ink-soft">
           You can type or speak naturally. Share anything you remember — name, age,
           location, last seen, appearance or any other details.
         </p>
@@ -90,7 +95,7 @@ function DescribeStep() {
                 setFindDescription(c);
                 taRef.current?.focus();
               }}
-              className="rounded-full border border-line-2 bg-white px-3.5 py-2 text-[11.5px] text-ink-soft transition-all hover:border-ink/40 hover:text-ink"
+              className="rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[11.5px] text-ink-soft transition-all duration-300 hover:border-ink hover:text-ink"
             >
               {c}
             </button>
@@ -98,14 +103,14 @@ function DescribeStep() {
         </div>
 
         {/* composer */}
-        <div className="mt-5 rounded-[22px] border border-line-2 bg-white shadow-[0_18px_44px_-28px_rgba(20,19,17,0.35)] transition-colors focus-within:border-ink/40">
+        <div className="mt-5 rounded-2xl border border-line-2 bg-paper-2 transition-colors focus-within:border-ink">
           <textarea
             ref={taRef}
             value={findDescription}
             onChange={(e) => setFindDescription(e.target.value)}
             placeholder="Describe the person you're looking for..."
             rows={6}
-            className="w-full resize-none rounded-t-[22px] bg-transparent px-5 pt-5 text-[14px] leading-relaxed outline-none placeholder:text-ink-faint"
+            className="w-full resize-none rounded-t-2xl bg-transparent px-5 pt-5 text-[14px] leading-relaxed outline-none placeholder:text-ink-faint"
           />
           <div className="flex items-center justify-between px-4 pb-4 pt-1">
             <div className="flex items-center gap-2">
@@ -116,8 +121,8 @@ function DescribeStep() {
                   className="hidden"
                   onChange={(e) => setFindPhotoName(e.target.files?.[0]?.name ?? null)}
                 />
-                <span className="inline-flex items-center gap-2 rounded-full border border-line-2 px-3.5 py-2 text-[12px] text-ink-soft transition-colors hover:border-ink/40 hover:text-ink">
-                  <Paperclip className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[12px] text-ink-soft transition-colors hover:border-ink hover:text-ink">
+                  <Paperclip className="h-3.5 w-3.5" strokeWidth={1.6} />
                   {findPhotoName ? findPhotoName : "Attach photo (optional)"}
                 </span>
               </label>
@@ -135,9 +140,9 @@ function DescribeStep() {
                 onClick={() => setListening(!listening)}
                 aria-label="Voice input"
                 className={cn(
-                  "grid h-10 w-10 place-items-center rounded-full border transition-all",
+                  "grid h-10 w-10 place-items-center rounded-full border transition-all duration-300",
                   listening
-                    ? "border-ink bg-ink text-[#f4f2ee]"
+                    ? "border-ink bg-ink text-paper"
                     : "border-line-2 text-ink-2 hover:border-ink/40"
                 )}
               >
@@ -149,7 +154,7 @@ function DescribeStep() {
                 onClick={() => setFindStep(1)}
                 disabled={!findDescription.trim() && !findPhotoName}
                 aria-label="Send"
-                className="grid h-10 w-10 place-items-center rounded-full bg-ink text-[#f4f2ee] shadow-[0_10px_24px_-10px_rgba(20,19,17,0.6)] transition-opacity disabled:opacity-30"
+                className="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper transition-opacity hover:bg-black disabled:opacity-30"
               >
                 <ArrowRight className="h-4 w-4" />
               </motion.button>
@@ -192,20 +197,20 @@ function DescribeStep() {
         transition={{ duration: 0.5, delay: 0.12 }}
         className="flex flex-col gap-4"
       >
-        <div className="rounded-[20px] border border-line bg-white/80 p-5">
-          <div className="flex items-center gap-2 text-[13px] font-semibold">
-            <Lightbulb className="h-4 w-4 text-ink" strokeWidth={1.7} /> Tips
+        <div className="rounded-2xl border border-line bg-paper-2 p-5">
+          <div className="flex items-center gap-2 text-[13px] font-medium text-ink">
+            <Lightbulb className="h-4 w-4 text-ink" strokeWidth={1.6} /> Tips
           </div>
           <ul className="mt-3.5 space-y-3">
             {DESCRIBE_TIPS.map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-[12px] leading-relaxed text-ink-soft">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-ink/30" />
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink/50" />
                 {t}
               </li>
             ))}
           </ul>
         </div>
-        <div className="khoj-grain relative flex-1 overflow-hidden rounded-[20px] bg-gradient-to-b from-[#efede8] to-[#e2dfd7] p-5 min-h-[190px]">
+        <div className="khoj-grain relative flex-1 overflow-hidden rounded-2xl border border-line bg-[#edeae3] p-5 min-h-[190px]">
           {/* detective sketch */}
           <svg viewBox="0 0 200 150" className="mx-auto mt-2 h-32 text-ink/80" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
             <circle cx="118" cy="42" r="16" />
@@ -244,22 +249,22 @@ function ReviewStep() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+      <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
         Did we get this right?
       </h1>
-      <p className="mt-2.5 text-[13.5px] text-ink-soft">
+      <p className="mt-3 text-[13.5px] text-ink-soft">
         Here&apos;s what we understand from your description. You can edit anything.
       </p>
 
-      <div className="mt-7 grid gap-6 rounded-[24px] border border-line bg-white/80 p-6 sm:grid-cols-[190px_1fr] sm:p-7">
+      <div className="mt-8 grid gap-6 rounded-2xl border border-line bg-paper-2 p-6 sm:grid-cols-[190px_1fr] sm:p-7">
         <div>
           <div className="relative">
             <PersonPhoto
               photo="/images/portrait-ramesh.jpg"
               name="Ramesh Kumar"
-              className="aspect-[4/5] w-full rounded-2xl object-cover"
+              className="aspect-[4/5] w-full rounded-xl object-cover"
             />
-            <span className="absolute left-3 top-3 rounded-full bg-match-green px-2.5 py-1 text-[11px] font-semibold text-match-green-text">
+            <span className="micro absolute left-3 top-3 rounded-full bg-paper-2/95 px-2.5 py-1.5 !text-[8.5px] normal-case tracking-[0.1em] text-ink">
               Best match
             </span>
           </div>
@@ -269,16 +274,16 @@ function ReviewStep() {
           </p>
         </div>
 
-        <div className="divide-y divide-line/80">
-          {fields.map((f, i) => (
-            <motion.div
-              key={f.key}
-              initial={{ opacity: 0, x: 14 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 * i, duration: 0.4 }}
-              className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-            >
-              <div className="text-[12px] text-ink-faint">{f.label}</div>
+          <div className="divide-y divide-line">
+            {fields.map((f, i) => (
+              <motion.div
+                key={f.key}
+                initial={{ opacity: 0, x: 14 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 * i, duration: 0.5, ease: EASE }}
+                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+              >
+                <div className="micro !text-[9px] normal-case tracking-[0.08em] text-ink-faint">{f.label}</div>
               <div className="flex flex-1 items-center justify-end gap-3 text-right">
                 <span className="text-[13px] font-medium text-ink">
                   {edits[f.key] ?? f.value}
@@ -307,7 +312,7 @@ function ReviewStep() {
                 value={extra}
                 onChange={(e) => setExtra(e.target.value)}
                 placeholder="Add a detail — language, marks, habit…"
-                className="w-full rounded-lg border border-line-2 bg-white px-3 py-2 text-[12.5px] outline-none focus:border-ink/40"
+                className={fieldCls + " !py-2 text-[12.5px]"}
               />
               <button
                 onClick={() => {
@@ -315,7 +320,7 @@ function ReviewStep() {
                   setAdding(false);
                   setExtra("");
                 }}
-                className="shrink-0 rounded-full bg-ink px-3.5 py-2 text-[11.5px] text-[#f4f2ee]"
+                className="shrink-0 rounded-full bg-ink px-3.5 py-2 text-[11.5px] text-paper transition-colors hover:bg-black"
               >
                 Add
               </button>
@@ -334,25 +339,24 @@ function ReviewStep() {
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => setAdding(true)}
-          className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-white px-5 py-2.5 text-[12.5px] font-medium transition-all hover:border-ink/40"
+          className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-5 py-2.5 text-[12.5px] font-medium text-ink transition-all duration-300 hover:border-ink"
         >
           + Add more details
         </button>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setFindStep(0)}
-            className="text-[13px] text-ink-soft transition-colors hover:text-ink"
+            className="micro !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
           >
             ← Back
           </button>
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
+          <Button
             onClick={() => setFindStep(2)}
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-colors hover:bg-black"
+            magnetic
+            icon={<ArrowRight className="h-3.5 w-3.5" />}
           >
-            Looks correct <ArrowRight className="h-3.5 w-3.5" />
-          </motion.button>
+            Looks correct
+          </Button>
         </div>
       </div>
     </motion.div>
@@ -408,7 +412,7 @@ function SearchStep() {
           <path d="M60 120c14-4 34-6 60-4" strokeWidth="2" />
         </motion.svg>
 
-        <h1 className="mt-6 text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+        <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
           Khoj is investigating...
         </h1>
         <p className="mx-auto mt-2.5 max-w-[440px] text-[13.5px] leading-relaxed text-ink-soft">
@@ -425,7 +429,7 @@ function SearchStep() {
                 <span
                   className={cn(
                     "grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-all duration-300",
-                    done && "border-ink bg-ink text-[#f4f2ee]",
+                    done && "border-ink bg-ink text-paper",
                     active && "border-ink/40",
                     !done && !active && "border-line-2"
                   )}
@@ -468,8 +472,8 @@ function SearchStep() {
         transition={{ duration: 0.5, delay: 0.12 }}
         className="flex flex-col gap-4"
       >
-        <div className="rounded-[20px] border border-line bg-white/80 p-5">
-          <div className="text-[13px] font-semibold">Searching across</div>
+        <div className="rounded-2xl border border-line bg-paper-2 p-5">
+          <div className="text-[13px] font-medium text-ink">Searching across</div>
           <ul className="mt-3.5 space-y-3.5">
             {SEARCH_SOURCES.map((s) => {
               const Icon = SOURCE_ICONS[s.icon];
@@ -484,7 +488,7 @@ function SearchStep() {
             })}
           </ul>
         </div>
-        <div className="relative flex-1 rounded-[20px] border border-line bg-white/50 p-5 min-h-[120px]">
+        <div className="relative flex-1 rounded-2xl border border-line bg-paper p-5 min-h-[120px]">
           <div className="absolute bottom-4 right-5 text-right">
             <HandNote size={21} rotate={-5} className="text-ink/85">
               A safer
@@ -555,7 +559,7 @@ function FindResults() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">
+          <h1 className="display-xl text-[clamp(30px,3.4vw,40px)]">
             We found {list.length} possible matches.
           </h1>
           <p className="mt-2 text-[13.5px] text-ink-soft">
@@ -567,14 +571,14 @@ function FindResults() {
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[12.5px] font-medium transition-all",
-              showFilters ? "border-ink bg-ink text-[#f4f2ee]" : "border-line-2 bg-white hover:border-ink/40"
+              showFilters ? "border-ink bg-ink text-paper" : "border-line-2 bg-paper-2 hover:border-ink/40"
             )}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" /> Filter
           </button>
           <button
             onClick={() => setSortDesc(!sortDesc)}
-            className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-white px-4 py-2.5 text-[12.5px] font-medium transition-all hover:border-ink/40"
+            className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-4 py-2.5 text-[12.5px] font-medium transition-all duration-300 hover:border-ink"
           >
             <ArrowUpDown className="h-3.5 w-3.5" /> Sort
           </button>
@@ -589,15 +593,15 @@ function FindResults() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-white/70 p-4">
-              <span className="text-[12px] text-ink-faint">Minimum match:</span>
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-paper-2 p-4">
+              <span className="micro !text-[9px] text-ink-faint">Minimum match:</span>
               {[0, 40, 50, 60, 70].map((m) => (
                 <button
                   key={m}
                   onClick={() => setMinMatch(m)}
                   className={cn(
                     "rounded-full px-3 py-1.5 text-[11.5px] font-medium transition-colors",
-                    minMatch === m ? "bg-ink text-[#f4f2ee]" : "border border-line-2 text-ink-soft hover:border-ink/40"
+                    minMatch === m ? "bg-ink text-paper" : "border border-line-2 text-ink-soft hover:border-ink/40"
                   )}
                 >
                   {m === 0 ? "All" : `${m}%+`}
@@ -616,12 +620,12 @@ function FindResults() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07, duration: 0.45 }}
             whileHover={{ y: -2 }}
-            className="group flex flex-col gap-4 rounded-[20px] border border-line bg-white/80 p-4 transition-all hover:border-ink/25 hover:shadow-[0_18px_40px_-24px_rgba(20,19,17,0.4)] sm:flex-row sm:items-center"
+            className="group flex flex-col gap-4 rounded-2xl border border-line bg-paper-2 p-4 transition-colors hover:border-ink/30 sm:flex-row sm:items-center"
           >
             <PersonPhoto
               photo={p.photo}
               name={p.name}
-              className="h-[74px] w-[74px] shrink-0 rounded-2xl object-cover"
+              className="h-[74px] w-[74px] shrink-0 rounded-xl object-cover"
             />
 
             <div className="min-w-0 flex-1">
@@ -647,7 +651,7 @@ function FindResults() {
               <SourceBadge source={p.source} />
               <button
                 onClick={() => openCase(p.id)}
-                className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-white px-4 py-2 text-[12px] font-medium transition-all hover:border-ink hover:bg-ink hover:text-[#f4f2ee]"
+                className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-[12px] font-medium transition-all duration-300 hover:border-ink hover:bg-ink hover:text-paper"
               >
                 View details <ArrowRight className="h-3 w-3" />
               </button>
@@ -665,7 +669,7 @@ function FindResults() {
         </button>
         <button
           onClick={() => useKhoj.getState().navigate("dashboard")}
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-[#f4f2ee] transition-colors hover:bg-black"
+          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13px] font-medium text-paper transition-colors hover:bg-black"
         >
           Back to dashboard <ArrowRight className="h-3.5 w-3.5" />
         </button>

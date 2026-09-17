@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
-import { Logo } from "./shared";
+import { Button, EASE, EASE_INOUT, Logo, fieldCls, labelCls } from "./shared";
 import { ONBOARDING_ROLES } from "@/lib/khoj/data";
 import type { Role } from "@/lib/khoj/data";
 import { useKhoj } from "@/lib/khoj/store";
@@ -27,21 +27,16 @@ const ROLE_ICONS: Record<string, React.ElementType> = {
   sparkle: Sparkles,
 };
 
-function StepHeader({ step }: { step: number }) {
+/* Viewport-edge progress hairline — full width, top of screen */
+function ProgressRail({ step }: { step: number }) {
   return (
-    <div className="w-full max-w-[280px]">
-      <div className="flex items-center justify-between text-[11px] font-medium text-ink-faint">
-        <span>Step {step + 1} of 3</span>
-        <span>{Math.round(((step + 1) / 3) * 100)}%</span>
-      </div>
-      <div className="mt-2 h-[3px] overflow-hidden rounded-full bg-line">
-        <motion.div
-          className="h-full rounded-full bg-ink"
-          initial={false}
-          animate={{ width: `${((step + 1) / 3) * 100}%` }}
-          transition={{ duration: 0.5, ease: [0.21, 0.65, 0.35, 1] }}
-        />
-      </div>
+    <div className="fixed inset-x-0 top-0 z-50 h-[2px] bg-ink/8">
+      <motion.div
+        className="h-full bg-ink"
+        initial={false}
+        animate={{ width: `${((step + 1) / 3) * 100}%` }}
+        transition={{ duration: 0.7, ease: EASE }}
+      />
     </div>
   );
 }
@@ -93,60 +88,72 @@ export default function Onboarding() {
     else finishOnboarding();
   };
 
+  const back = () =>
+    onboardingStep > 0
+      ? setOnboardingStep(onboardingStep - 1)
+      : useKhoj.getState().navigate("landing");
+
   const togglePref = (key: "prefsEmail" | "prefsSms" | "prefsWhatsapp") =>
     setOnboardingDetail({
       [key]: !useKhoj.getState()[key],
     } as never);
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper px-6 py-7 sm:px-12">
+    <div className="flex min-h-screen flex-col bg-paper px-6 py-6 sm:px-12">
+      <ProgressRail step={onboardingStep} />
+
+      {/* Top bar */}
       <div className="flex items-center justify-between">
         <Logo tagline={false} onClick={() => useKhoj.getState().navigate("landing")} />
-        <StepHeader step={onboardingStep} />
+        <div className="micro tabular text-ink-faint">
+          Step 0{onboardingStep + 1} <span className="mx-1 text-ink/25">/</span> 03
+        </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col justify-center py-10">
+      {/* Body */}
+      <div className="mx-auto flex w-full max-w-[780px] flex-1 flex-col justify-center py-12">
         <AnimatePresence mode="wait">
           <motion.div
             key={onboardingStep}
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 26 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.45, ease: [0.21, 0.65, 0.35, 1] }}
+            exit={{ opacity: 0, x: -26, transition: { duration: 0.25, ease: EASE_INOUT } }}
+            transition={{ duration: 0.55, ease: EASE }}
           >
-            <h1 className="text-[30px] font-semibold tracking-[-0.02em] sm:text-[34px]">
+            <h1 className="display-xl max-w-[560px] text-[clamp(32px,4vw,44px)]">
               {steps[onboardingStep].title}
             </h1>
-            <p className="mt-2.5 text-[14px] text-ink-soft">{steps[onboardingStep].sub}</p>
+            <p className="mt-3 max-w-[480px] text-[14px] leading-relaxed text-ink-soft">
+              {steps[onboardingStep].sub}
+            </p>
 
             {/* -------- Step 1: role cards -------- */}
             {onboardingStep === 0 && (
-              <div className="mt-10 grid gap-3.5 sm:grid-cols-3">
+              <div className="mt-12 grid gap-3 sm:grid-cols-3">
                 {ONBOARDING_ROLES.map((r, i) => {
                   const Icon = ROLE_ICONS[r.icon];
                   const active = role === r.role;
                   return (
                     <motion.button
                       key={r.role}
-                      initial={{ opacity: 0, y: 18 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.06 * i, duration: 0.45 }}
-                      whileHover={{ y: -3 }}
+                      transition={{ delay: 0.07 * i, duration: 0.55, ease: EASE }}
                       onClick={() => setRole(r.role as Role)}
                       className={cn(
-                        "relative rounded-2xl border p-4.5 p-5 text-left transition-all duration-300",
+                        "group relative rounded-2xl border p-5 text-left transition-all duration-300",
                         active
-                          ? "border-ink bg-white shadow-[0_18px_36px_-18px_rgba(20,19,17,0.35)]"
-                          : "border-line-2 bg-white/60 hover:border-ink/40 hover:bg-white"
+                          ? "border-ink bg-paper-2"
+                          : "border-line-2 bg-transparent hover:border-ink/50 hover:bg-paper-2"
                       )}
                     >
                       <div className="flex items-start justify-between">
                         <Icon
                           className={cn(
-                            "h-[19px] w-[19px] transition-colors",
+                            "h-[18px] w-[18px] transition-colors",
                             active ? "text-ink" : "text-ink-soft"
                           )}
-                          strokeWidth={1.6}
+                          strokeWidth={1.5}
                         />
                         <AnimatePresence>
                           {active && (
@@ -155,14 +162,14 @@ export default function Onboarding() {
                               animate={{ scale: 1, opacity: 1 }}
                               exit={{ scale: 0, opacity: 0 }}
                               transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                              className="grid h-5 w-5 place-items-center rounded-full bg-ink text-[#f4f2ee]"
+                              className="grid h-5 w-5 place-items-center rounded-full bg-ink text-paper"
                             >
                               <Check className="h-3 w-3" strokeWidth={3} />
                             </motion.span>
                           )}
                         </AnimatePresence>
                       </div>
-                      <div className="mt-7 text-[14px] font-semibold tracking-tight">
+                      <div className="mt-9 text-[14px] font-medium tracking-[-0.01em] text-ink">
                         {r.role}
                       </div>
                       <div className="mt-1 text-[12px] text-ink-soft">{r.desc}</div>
@@ -174,9 +181,9 @@ export default function Onboarding() {
 
             {/* -------- Step 2: personal details -------- */}
             {onboardingStep === 1 && (
-              <div className="mt-10 max-w-[520px] space-y-4">
+              <div className="mt-12 max-w-[480px] space-y-5">
                 <div>
-                  <label htmlFor="ob-name" className="text-[12px] font-medium text-ink-2">
+                  <label htmlFor="ob-name" className={labelCls}>
                     Full name
                   </label>
                   <input
@@ -184,31 +191,31 @@ export default function Onboarding() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your name"
-                    className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                    className={fieldCls + " mt-2"}
                   />
                 </div>
                 <div>
-                  <label htmlFor="ob-phone" className="text-[12px] font-medium text-ink-2">
-                    Phone <span className="text-ink-faint">(optional)</span>
+                  <label htmlFor="ob-phone" className={labelCls}>
+                    Phone <span className="normal-case tracking-normal text-ink-faint">(optional)</span>
                   </label>
                   <input
                     id="ob-phone"
                     value={phone}
                     onChange={(e) => setOnboardingDetail({ phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                    className={fieldCls + " mt-2 tabular"}
                   />
                 </div>
                 <div>
-                  <label htmlFor="ob-city" className="text-[12px] font-medium text-ink-2">
-                    City <span className="text-ink-faint">(for nearby support)</span>
+                  <label htmlFor="ob-city" className={labelCls}>
+                    City <span className="normal-case tracking-normal text-ink-faint">(for nearby support)</span>
                   </label>
                   <input
                     id="ob-city"
                     value={city}
                     onChange={(e) => setOnboardingDetail({ city: e.target.value })}
                     placeholder="e.g. Mumbai"
-                    className="mt-1.5 w-full rounded-xl border border-line-2 bg-white px-4 py-3 text-[13.5px] outline-none transition-all placeholder:text-ink-faint focus:border-ink/50 focus:ring-4 focus:ring-ink/5"
+                    className={fieldCls + " mt-2"}
                   />
                 </div>
               </div>
@@ -216,7 +223,7 @@ export default function Onboarding() {
 
             {/* -------- Step 3: preferences -------- */}
             {onboardingStep === 2 && (
-              <div className="mt-10 max-w-[560px] space-y-3">
+              <div className="mt-12 max-w-[540px] space-y-2.5">
                 {[
                   {
                     key: "prefsEmail" as const,
@@ -233,64 +240,73 @@ export default function Onboarding() {
                     title: "WhatsApp updates",
                     desc: "Progress nudges and nearby sightings.",
                   },
-                ].map((p) => (
-                  <div
-                    key={p.key}
-                    className="flex items-center justify-between rounded-2xl border border-line-2 bg-white/70 px-5 py-4"
-                  >
-                    <div>
-                      <div className="text-[14px] font-medium">{p.title}</div>
-                      <div className="mt-0.5 text-[12px] text-ink-soft">{p.desc}</div>
-                    </div>
-                    <button
-                      role="switch"
-                      aria-checked={useKhoj.getState()[p.key]}
-                      aria-label={p.title}
-                      onClick={() => togglePref(p.key)}
-                      className={cn(
-                        "relative h-6 w-11 rounded-full transition-colors duration-300",
-                        useKhoj.getState()[p.key] ? "bg-ink" : "bg-line-2"
-                      )}
+                ].map((p) => {
+                  const on = useKhoj.getState()[p.key];
+                  return (
+                    <div
+                      key={p.key}
+                      className="flex items-center justify-between rounded-2xl border border-line-2 px-5 py-4 transition-colors hover:border-ink/30"
                     >
-                      <motion.span
-                        layout
-                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                      <div>
+                        <div className="text-[14px] font-medium text-ink">{p.title}</div>
+                        <div className="mt-0.5 text-[12px] text-ink-soft">{p.desc}</div>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={on}
+                        aria-label={p.title}
+                        onClick={() => togglePref(p.key)}
                         className={cn(
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow",
-                          useKhoj.getState()[p.key] ? "right-0.5" : "left-0.5"
+                          "relative h-[22px] w-[40px] rounded-full transition-colors duration-300",
+                          on ? "bg-ink" : "bg-line-2"
                         )}
-                      />
-                    </button>
-                  </div>
-                ))}
-                <div className="rounded-2xl border border-dashed border-line-2 bg-white/40 px-5 py-4 text-[12.5px] leading-relaxed text-ink-soft">
-                  <span className="font-semibold text-ink">You&apos;re set, {name.split(" ")[0] || "friend"}.</span>{" "}
-                  {role ?? "Family Member"} · {name || user?.email || "you@example.com"} — Khoj
-                  will guide you through your first search next.
+                      >
+                        <motion.span
+                          layout
+                          transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                          className={cn(
+                            "absolute top-[2px] h-[18px] w-[18px] rounded-full bg-paper-2",
+                            on ? "right-[2px]" : "left-[2px]"
+                          )}
+                        />
+                      </button>
+                    </div>
+                  );
+                })}
+                <div className="mt-6 border-t border-ink/15 pt-5 text-[13px] leading-relaxed text-ink-soft">
+                  <span className="font-medium text-ink">
+                    You&apos;re set, {name.split(" ")[0] || "friend"}.
+                  </span>{" "}
+                  {role ?? "Family Member"} · {name || user?.email || "you@example.com"} —
+                  Khoj will guide you through your first search next.
                 </div>
               </div>
             )}
 
-            {error && <p className="mt-5 text-[12px] text-red-600">{error}</p>}
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 border-l-2 border-[#b3402f] pl-3 text-[12px] text-[#b3402f]"
+              >
+                {error}
+              </motion.p>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[760px] items-center justify-between">
+      {/* Footer controls */}
+      <div className="mx-auto flex w-full max-w-[780px] items-center justify-between">
         <button
-          onClick={() => (onboardingStep > 0 ? setOnboardingStep(onboardingStep - 1) : useKhoj.getState().navigate("landing"))}
-          className="text-[13px] text-ink-soft transition-colors hover:text-ink"
+          onClick={back}
+          className="micro flex items-center gap-2 !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
         >
           {onboardingStep > 0 ? "← Back" : ""}
         </button>
-        <motion.button
-          whileHover={{ y: -1 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={next}
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[13.5px] font-medium text-[#f4f2ee] shadow-[0_14px_30px_-14px_rgba(20,19,17,0.55)] transition-all hover:bg-black"
-        >
-          {onboardingStep === 2 ? "Enter Khoj" : "Continue"} <ArrowRight className="h-3.5 w-3.5" />
-        </motion.button>
+        <Button onClick={next} magnetic icon={onboardingStep === 2 ? undefined : <ArrowRight className="h-3.5 w-3.5" />}>
+          {onboardingStep === 2 ? "Enter Khoj" : "Continue"}
+        </Button>
       </div>
     </div>
   );

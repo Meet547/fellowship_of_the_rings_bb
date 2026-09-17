@@ -1,15 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Caveat } from "next/font/google";
+import { Instrument_Serif, Inter_Tight, IBM_Plex_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({
-  variable: "--font-inter",
+const display = Instrument_Serif({
+  variable: "--font-instrument",
+  weight: "400",
+  style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap",
 });
 
-const caveat = Caveat({
+const sans = Inter_Tight({
+  variable: "--font-intertight",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-plexmono",
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const hand = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
   display: "swap",
@@ -46,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${caveat.variable} antialiased bg-[#f4f2ee] text-[#141311] font-sans`}
+        className={`${display.variable} ${sans.variable} ${mono.variable} ${hand.variable} antialiased bg-paper text-ink font-sans`}
       >
         {children}
         <Toaster />

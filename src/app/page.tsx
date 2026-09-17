@@ -17,6 +17,7 @@ import {
   SavedPage,
 } from "@/components/khoj/pages";
 import { useKhoj } from "@/lib/khoj/store";
+import { EASE, EASE_INOUT } from "@/components/khoj/shared";
 
 export default function Home() {
   const view = useKhoj((s) => s.view);
@@ -26,10 +27,10 @@ export default function Home() {
       <AnimatePresence mode="wait">
         <motion.div
           key={view}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3, ease: [0.21, 0.65, 0.35, 1] }}
+          exit={{ opacity: 0, y: -12, transition: { duration: 0.28, ease: EASE_INOUT } }}
+          transition={{ duration: 0.55, ease: EASE }}
         >
           {view === "landing" && <Landing />}
           {view === "signin" && <SignIn />}

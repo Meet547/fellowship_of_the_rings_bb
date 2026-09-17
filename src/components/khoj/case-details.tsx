@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "./app-shell";
-import { MatchBadge, PersonPhoto } from "./shared";
+import { Button, EASE, MatchBadge, PersonPhoto } from "./shared";
 import { useKhoj } from "@/lib/khoj/store";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +85,7 @@ export default function CaseDetails() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("results")}
-            className="flex items-center gap-1.5 text-[12.5px] text-ink-soft transition-colors hover:text-ink"
+            className="micro flex items-center gap-1.5 !text-[9.5px] text-ink-soft transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to results
           </button>
@@ -98,20 +98,20 @@ export default function CaseDetails() {
                   navigator.clipboard?.writeText(window.location.href).catch(() => {});
                 }
               }}
-              className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-white px-4 py-2 text-[12px] font-medium transition-all hover:border-ink/40"
+              className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-4 py-2 text-[12px] font-medium transition-all duration-300 hover:border-ink"
             >
-              <Share2 className="h-3.5 w-3.5" /> Share
+              <Share2 className="h-3.5 w-3.5" strokeWidth={1.6} /> Share
             </button>
             <button
               onClick={() => toggleSaved(person.id)}
               className={cn(
-                "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium transition-all",
+                "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium transition-all duration-300",
                 isSaved
-                  ? "border-ink bg-ink text-[#f4f2ee]"
-                  : "border-line-2 bg-white hover:border-ink/40"
+                  ? "border-ink bg-ink text-paper"
+                  : "border-ink/15 hover:border-ink"
               )}
             >
-              <Bookmark className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
+              <Bookmark className={cn("h-3.5 w-3.5", isSaved && "fill-current")} strokeWidth={1.6} />
               {isSaved ? "Saved" : "Save"}
             </button>
           </div>
@@ -121,20 +121,20 @@ export default function CaseDetails() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mt-5 grid gap-6 rounded-[24px] border border-line bg-white/80 p-6 sm:grid-cols-[200px_1fr_220px]"
+          transition={{ duration: 0.55, ease: EASE }}
+          className="mt-5 grid gap-6 rounded-2xl border border-line bg-paper-2 p-6 sm:grid-cols-[200px_1fr_220px]"
         >
           <div className="relative">
             <PersonPhoto
               photo={person.photo}
               name={person.name}
-              className="aspect-[4/5] w-full rounded-2xl object-cover"
+              className="aspect-[4/5] w-full rounded-xl object-cover"
             />
           </div>
 
           <div>
             <MatchBadge pct={person.match} />
-            <h1 className="mt-2.5 text-[24px] font-semibold tracking-[-0.02em]">
+            <h1 className="display-xl mt-3 text-[34px]">
               {person.name}
             </h1>
             <div className="mt-4 space-y-2.5 text-[13px] text-ink-2">
@@ -151,39 +151,37 @@ export default function CaseDetails() {
           </div>
 
           {/* Source card */}
-          <div className="rounded-2xl border border-line bg-white p-5">
-            <div className="text-[11px] font-semibold tracking-wide text-ink-faint">SOURCE</div>
-            <div className="mt-2 flex items-center gap-2 text-[13.5px] font-semibold">
-              <Building2 className="h-4 w-4 text-ink-2" strokeWidth={1.7} />
+          <div className="rounded-xl border border-line bg-paper p-5">
+            <div className="micro !text-[9px] text-ink-faint">Source</div>
+            <div className="mt-2.5 flex items-center gap-2 text-[13.5px] font-medium">
+              <Building2 className="h-4 w-4 text-ink-2" strokeWidth={1.6} />
               {person.source}
             </div>
-            <div className="mt-1 text-[11.5px] text-ink-faint">
+            <div className="micro mt-1.5 !text-[8.5px] normal-case tracking-[0.04em] text-ink-faint">
               Last updated {person.updated}
             </div>
-            <motion.button
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.98 }}
+            <Button
               onClick={() =>
                 alert(
                   "Connecting you to Maharashtra Police helpline 1098 / 112.\n(Demo action)"
                 )
               }
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-ink py-2.5 text-[12.5px] font-medium text-[#f4f2ee] transition-colors hover:bg-black"
+              className="mt-5 w-full !py-2.5"
             >
-              <Phone className="h-3.5 w-3.5" /> Contact Authority
-            </motion.button>
+              <Phone className="h-3.5 w-3.5" strokeWidth={1.6} /> Contact Authority
+            </Button>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <div className="mt-6 flex gap-6 border-b border-line">
+        <div className="mt-7 flex gap-7 border-b border-line">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "relative pb-3 text-[13px] transition-colors",
-                tab === t ? "font-semibold text-ink" : "text-ink-faint hover:text-ink-2"
+                "micro relative pb-3 !text-[10px] normal-case tracking-[0.04em] transition-colors",
+                tab === t ? "font-medium text-ink" : "text-ink-faint hover:text-ink-2"
               )}
             >
               {t}
@@ -208,8 +206,8 @@ export default function CaseDetails() {
           >
             {tab === "Overview" && (
               <div className="grid gap-5 lg:grid-cols-2">
-                <div className="rounded-[20px] border border-line bg-white/80 p-6">
-                  <h3 className="text-[14px] font-semibold">Physical Description</h3>
+                <div className="rounded-2xl border border-line bg-paper-2 p-6">
+                  <h3 className="text-[14px] font-medium">Physical Description</h3>
                   <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
                     {[
                       ["Height", "5'6\""],
@@ -218,21 +216,21 @@ export default function CaseDetails() {
                       ["Hair", "Gray"],
                     ].map(([k, v]) => (
                       <div key={k}>
-                        <div className="text-[11.5px] text-ink-faint">{k}</div>
-                        <div className="mt-0.5 text-[13.5px] font-medium">{v}</div>
+                        <div className="micro !text-[8.5px] normal-case tracking-[0.08em] text-ink-faint">{k}</div>
+                        <div className="mt-1 text-[13.5px] font-medium">{v}</div>
                       </div>
                     ))}
                     <div className="col-span-2">
-                      <div className="text-[11.5px] text-ink-faint">Identifying features</div>
-                      <div className="mt-0.5 text-[13.5px] font-medium">
+                      <div className="micro !text-[8.5px] normal-case tracking-[0.08em] text-ink-faint">Identifying features</div>
+                      <div className="mt-1 text-[13.5px] font-medium">
                         Wears glasses, small mole on left cheek
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-[20px] border border-line bg-white/80 p-6">
-                  <h3 className="text-[14px] font-semibold">Last Known Location</h3>
+                <div className="rounded-2xl border border-line bg-paper-2 p-6">
+                  <h3 className="text-[14px] font-medium">Last Known Location</h3>
                   <p className="mt-1 text-[12px] text-ink-soft">Thane, Maharashtra</p>
                   <div className="mt-4">
                     <MiniMap />
@@ -242,7 +240,7 @@ export default function CaseDetails() {
             )}
 
             {tab === "Timeline" && (
-              <div className="max-w-[640px] space-y-0 rounded-[20px] border border-line bg-white/80 p-6">
+              <div className="max-w-[640px] space-y-0 rounded-2xl border border-line bg-paper-2 p-6">
                 {[
                   ["12 Sep 2026", "Found near Thane railway station by a community volunteer."],
                   ["13 Sep 2026", "Shelter intake completed. Health check normal."],
@@ -253,9 +251,9 @@ export default function CaseDetails() {
                     {i < arr.length - 1 && (
                       <span className="absolute left-[5px] top-4 h-full w-px bg-line-2" />
                     )}
-                    <span className="relative mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-ink" />
+                    <span className="relative mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-ink bg-paper" />
                     <div>
-                      <div className="text-[12px] font-semibold text-ink-faint">{d}</div>
+                      <div className="font-mono text-[10.5px] font-medium tracking-[0.06em] text-ink-faint">{d}</div>
                       <div className="mt-0.5 text-[13px] leading-relaxed text-ink-2">{e}</div>
                     </div>
                   </div>
@@ -283,13 +281,13 @@ export default function CaseDetails() {
             )}
 
             {tab === "Source Details" && (
-              <div className="max-w-[560px] rounded-[20px] border border-line bg-white/80 p-6">
+              <div className="max-w-[560px] rounded-2xl border border-line bg-paper-2 p-6">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-ink/[0.06]">
-                    <Building2 className="h-4.5 w-4.5 h-5 w-5 text-ink" strokeWidth={1.6} />
+                  <span className="grid h-10 w-10 place-items-center rounded-full border border-line-2 bg-paper">
+                    <Building2 className="h-[18px] w-[18px] text-ink" strokeWidth={1.5} />
                   </span>
                   <div>
-                    <div className="text-[14px] font-semibold">{person.source}</div>
+                    <div className="text-[14px] font-medium">{person.source}</div>
                     <div className="text-[11.5px] text-ink-faint">
                       Verified government source · Record ID MP-2026-09124
                     </div>
