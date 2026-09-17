@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
 import { useState } from "react";
-import { Btn, Logo, ScriptNote } from "./ui";
+import { Btn, Logo, ScriptNote, useToast } from "./ui";
 import type { Navigate } from "@/lib/khoj/router";
 
 function GoogleIcon() {
@@ -93,6 +93,9 @@ function SkylineSketch() {
 export default function Auth({ navigate }: { navigate: Navigate }) {
   const [tab, setTab] = useState<"signin" | "create">("signin");
   const [showPw, setShowPw] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const toast = useToast();
 
   const pill = { signin: false, create: true } as const;
 
@@ -150,6 +153,11 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             className="mt-6 space-y-3.5"
             onSubmit={(e) => {
               e.preventDefault();
+              if (!email.trim() || password.length < 6) {
+                toast("Enter an email and a password with at least 6 characters.");
+                return;
+              }
+              window.localStorage.setItem("khoj-authenticated", "true");
               navigate("dashboard");
             }}
           >
@@ -167,6 +175,9 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
               <input
                 type="email"
                 placeholder="Email or phone number"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-3.5 text-[13.5px] text-ink placeholder:text-ink3 transition-all hover:border-ink/25 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
               />
             </div>
@@ -175,6 +186,10 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
               <input
                 type={showPw ? "text" : "password"}
                 placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
                 className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-11 text-[13.5px] text-ink placeholder:text-ink3 transition-all hover:border-ink/25 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
               />
               <button
@@ -188,7 +203,7 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             </div>
 
             <div className="flex justify-end pt-0.5">
-              <button type="button" className="link-sweep cursor-pointer text-[11.5px] text-ink2 hover:text-ink">
+              <button type="button" onClick={() => toast("Password reset will be sent when authentication is connected.")} className="link-sweep cursor-pointer text-[11.5px] text-ink2 hover:text-ink">
                 Forgot password?
               </button>
             </div>
@@ -211,7 +226,10 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             ].map((p) => (
               <button
                 key={p.label}
-                onClick={() => navigate("dashboard")}
+                onClick={() => {
+                  window.localStorage.setItem("khoj-authenticated", "true");
+                  navigate("dashboard");
+                }}
                 className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border border-line bg-paper2 text-[13px] font-medium text-ink transition-all duration-300 hover:border-ink/30 hover:bg-card active:scale-[0.99]"
               >
                 {p.icon}
@@ -222,9 +240,9 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
 
           <p className="mt-5 text-center text-[10.5px] leading-relaxed text-ink3">
             By signing in, you agree to our{" "}
-            <span className="cursor-pointer underline underline-offset-2 hover:text-ink2">Terms</span>{" "}
+            <button type="button" onClick={() => toast("Terms of use will be available before launch.")} className="cursor-pointer underline underline-offset-2 hover:text-ink2">Terms</button>{" "}
             and{" "}
-            <span className="cursor-pointer underline underline-offset-2 hover:text-ink2">Privacy Policy</span>.
+            <button type="button" onClick={() => toast("Privacy policy details will be available before launch.")} className="cursor-pointer underline underline-offset-2 hover:text-ink2">Privacy Policy</button>.
           </p>
         </motion.div>
       </div>

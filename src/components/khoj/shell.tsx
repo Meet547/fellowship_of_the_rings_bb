@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import {
   Bell,
-  BookOpen,
   ChevronDown,
   Command,
   Database,
@@ -16,7 +15,7 @@ import {
   UserSearch,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { Logo } from "./ui";
+import { Logo, useToast } from "./ui";
 import type { Navigate, View } from "@/lib/khoj/router";
 
 const NAV: { icon: ReactNode; label: string; view: View }[] = [
@@ -25,16 +24,30 @@ const NAV: { icon: ReactNode; label: string; view: View }[] = [
   { icon: <UserSearch size={16} strokeWidth={1.8} />, label: "Find a Person", view: "find" },
   { icon: <ScanFace size={16} strokeWidth={1.8} />, label: "Scan & Identify", view: "scan" },
   { icon: <FileText size={16} strokeWidth={1.8} />, label: "Reports", view: "report" },
-  { icon: <Bell size={16} strokeWidth={1.8} />, label: "Alerts", view: "dashboard" },
-  { icon: <BookOpen size={16} strokeWidth={1.8} />, label: "Resources", view: "landing" },
 ];
 
 export function Topbar({ navigate }: { navigate: Navigate }) {
+  const toast = useToast();
+  const [query, setQuery] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: "match", title: "Potential match found", body: "Ramesh Sharma matches your recent search.", view: "match" as const },
+    { id: "review", title: "Report under review", body: "Your report MP-2481 is being reviewed by our partners.", view: "report" as const },
+  ]);
   return (
     <div className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-line bg-paper/90 px-6 backdrop-blur-md">
       <div className="relative hidden w-[360px] items-center sm:flex">
         <Search size={14.5} className="absolute left-3.5 text-ink3" />
         <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && query.trim()) {
+              toast(`Searching the database for “${query.trim()}”`);
+              navigate("database");
+            }
+          }}
           placeholder="Search by name, location, or case ID..."
           className="h-10 w-full rounded-[10px] border border-line bg-card pl-9 pr-12 text-[12.5px] text-ink placeholder:text-ink3 transition-all hover:border-ink/25 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10"
         />
@@ -44,6 +57,7 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
       </div>
       <button
         aria-label="Filters"
+        onClick={() => toast("Use the database filters to narrow people by state, age, gender, date, and status.")}
         className="flex size-10 cursor-pointer items-center justify-center rounded-[10px] border border-line bg-card text-ink2 transition-all hover:border-ink/30 hover:text-ink"
       >
         <ListFilter size={15} strokeWidth={1.8} />
@@ -51,13 +65,48 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
       <div className="flex-1" />
       <button
         aria-label="Notifications"
+        onClick={() => setNotificationsOpen((open) => !open)}
         className="relative flex size-10 cursor-pointer items-center justify-center rounded-full text-ink2 transition-all hover:bg-paper2 hover:text-ink"
       >
         <Bell size={17} strokeWidth={1.8} />
-        <span className="absolute right-2 top-2 size-[7px] rounded-full bg-rust ring-2 ring-paper" />
+        {notifications.length > 0 && <span className="absolute right-2 top-2 size-[7px] rounded-full bg-rust ring-2 ring-paper" />}
       </button>
+      {notificationsOpen && (
+        <div className="absolute right-16 top-14 z-40 w-[310px] overflow-hidden rounded-[14px] border border-line bg-card shadow-[0_18px_45px_-20px_rgba(35,32,27,0.45)]">
+          <div className="flex items-center justify-between border-b border-line2 px-4 py-3">
+            <span className="text-[13px] font-semibold text-ink">Notifications</span>
+            <button
+              className="text-[10.5px] font-medium text-ink3 hover:text-ink"
+              onClick={() => setNotifications([])}
+            >
+              Mark all read
+            </button>
+          </div>
+          {notifications.length > 0 ? notifications.map((notification) => (
+            <button
+              key={notification.id}
+              onClick={() => {
+                setNotifications((items) => items.filter((item) => item.id !== notification.id));
+                setNotificationsOpen(false);
+                navigate(notification.view);
+              }}
+              className="w-full border-b border-line2 px-4 py-3 text-left transition-colors hover:bg-paper2"
+            >
+              <div className="flex items-start gap-2.5">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-rust" />
+                <span>
+                  <span className="block text-[12px] font-medium text-ink">{notification.title}</span>
+                  <span className="mt-0.5 block text-[11px] leading-relaxed text-ink2">{notification.body}</span>
+                </span>
+              </div>
+            </button>
+          )) : (
+            <div className="px-4 py-6 text-center text-[12px] text-ink3">You&rsquo;re all caught up.</div>
+          )}
+        </div>
+      )}
       <button
-        onClick={() => navigate("dashboard")}
+        onClick={() => setProfileOpen((open) => !open)}
         className="flex cursor-pointer items-center gap-2.5 rounded-full py-1 pl-1 pr-2.5 transition-colors hover:bg-paper2"
       >
         <span className="flex size-8 items-center justify-center rounded-full bg-rust text-[12px] font-semibold text-paper2">
@@ -69,6 +118,12 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
         </span>
         <ChevronDown size={13} className="text-ink3" />
       </button>
+      {profileOpen && (
+        <div className="absolute right-5 top-14 z-40 w-44 rounded-[12px] border border-line bg-card p-2 shadow-lg">
+          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-ink2 hover:bg-paper2" onClick={() => toast("Profile settings are ready to connect.")}>Profile settings</button>
+          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-rust hover:bg-peach/50" onClick={() => { window.localStorage.removeItem("khoj-authenticated"); navigate("auth"); }}>Sign out</button>
+        </div>
+      )}
     </div>
   );
 }

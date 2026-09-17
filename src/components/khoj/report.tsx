@@ -9,8 +9,8 @@ import {
   ImageUp,
   PhoneCall,
 } from "lucide-react";
-import { useState } from "react";
-import { Btn, Field, Logo, ScriptNote, SelectInput, TextArea, TextInput } from "./ui";
+import { useRef, useState } from "react";
+import { Btn, Field, Logo, ScriptNote, SelectInput, TextArea, TextInput, useToast } from "./ui";
 import type { Navigate } from "@/lib/khoj/router";
 
 const STEPS = ["Details", "Photos", "Additional Info", "Review"] as const;
@@ -110,6 +110,9 @@ const slide = {
 export default function Report({ navigate }: { navigate: Navigate }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const toast = useToast();
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -212,7 +215,13 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                   </Field>
                 </div>
                 <div className="mt-6 flex justify-end">
-                  <Btn arrow onClick={() => setStep(2)}>
+                  <Btn arrow onClick={() => {
+                    if (!form.name || !form.age || !form.gender || !form.location || !form.date || !form.details) {
+                      toast("Complete all required details before continuing.");
+                      return;
+                    }
+                    setStep(2);
+                  }}>
                     Next
                   </Btn>
                 </div>
@@ -225,13 +234,19 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                 <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink2">
                   Clear photos help our AI find matches faster. You can add up to 4 photos.
                 </p>
-                <button className="mt-5 flex h-[190px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25">
+                <button type="button" onClick={() => photoInput.current?.click()} className="mt-5 flex h-[190px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25">
                   <span className="flex size-12 items-center justify-center rounded-full bg-card text-ink2 shadow-sm">
                     <ImageUp size={20} strokeWidth={1.7} />
                   </span>
                   <span className="text-[13px] font-medium text-ink">Click to upload photos</span>
                   <span className="text-[11px] text-ink3">JPG or PNG, up to 10MB each</span>
                 </button>
+                <input ref={photoInput} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={(event) => {
+                  const selected = Array.from(event.target.files ?? []).slice(0, 4);
+                  setPhotos(selected.map((file) => file.name));
+                  if (selected.length) toast(`${selected.length} photo${selected.length === 1 ? "" : "s"} added.`);
+                }} />
+                {photos.length > 0 && <p className="mt-2 text-[11px] text-badgegt">{photos.length} photo(s) selected</p>}
                 <div className="mt-6 flex items-center justify-between">
                   <Btn variant="ghost" onClick={() => setStep(1)} className="gap-1.5">
                     <ArrowLeft size={14} /> Back
@@ -318,7 +333,13 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                   <Btn variant="ghost" onClick={() => setStep(3)} className="gap-1.5">
                     <ArrowLeft size={14} /> Back
                   </Btn>
-                  <Btn arrow onClick={() => navigate("searching")}>
+                  <Btn arrow onClick={() => {
+                    if (!form.contact) {
+                      toast("Add a contact number so responders can reach you.");
+                      return;
+                    }
+                    navigate("searching");
+                  }}>
                     Submit Report
                   </Btn>
                 </div>

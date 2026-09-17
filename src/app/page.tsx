@@ -9,11 +9,38 @@ import Database from "@/components/khoj/database";
 import Find from "@/components/khoj/find";
 import Scan from "@/components/khoj/scan";
 import Report from "@/components/khoj/report";
+import PageLoader from "@/components/khoj/page-loader";
 import Searching from "@/components/khoj/searching";
 import Match from "@/components/khoj/match";
 import { ToastProvider } from "@/components/khoj/ui";
 import { useView } from "@/lib/khoj/router";
-import { useEffect } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+
+function RouteTransition({ view, children }: { view: string; children: ReactNode }) {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoading(false), 700);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return (
+    <>
+      <AnimatePresence>{loading && <PageLoader />}</AnimatePresence>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={view}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </>
+  );
+}
 
 export default function Home() {
   const { view, navigate } = useView();
@@ -69,17 +96,7 @@ export default function Home() {
   return (
     <ToastProvider>
       <div className={`min-h-screen ${isApp ? "bg-paper" : "bg-paper"}`}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={view}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {content}
-          </motion.div>
-        </AnimatePresence>
+        <RouteTransition key={view} view={view}>{content}</RouteTransition>
       </div>
     </ToastProvider>
   );

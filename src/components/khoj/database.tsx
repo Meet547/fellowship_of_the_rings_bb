@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LayoutGrid, List, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Btn, SelectInput } from "./ui";
 import { IndiaMap, CITY, type MapDot } from "./india-map";
 import { PEOPLE } from "@/lib/khoj/data";
@@ -31,6 +31,17 @@ const FILTERS = [
 
 export default function Database({ navigate }: { navigate: Navigate }) {
   const [mapTab, setMapTab] = useState<"map" | "heat">("map");
+  const [layout, setLayout] = useState<"list" | "grid">("list");
+  const [zoom, setZoom] = useState(1);
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const people = useMemo(() => PEOPLE.filter((person) => {
+    const state = filters.State;
+    const gender = filters.Gender;
+    const status = filters.Status;
+    return (!state || state === "All States" || person.location.includes(state)) &&
+      (!gender || gender === "Any" || person.gender === gender) &&
+      (!status || status === "All" || person.status === status.toLowerCase());
+  }), [filters]);
 
   return (
     <div className="mx-auto max-w-[1120px] px-6 py-9">
@@ -50,7 +61,7 @@ export default function Database({ navigate }: { navigate: Navigate }) {
               <label className="mb-[6px] block text-[10.5px] font-medium uppercase tracking-[0.06em] text-ink3">
                 {f.label}
               </label>
-              <SelectInput className="[&>div]:w-full" aria-label={f.label}>
+              <SelectInput className="[&>div]:w-full" aria-label={f.label} value={filters[f.label] ?? f.options[0]} onChange={(event) => setFilters((current) => ({ ...current, [f.label]: event.target.value }))}>
                 {f.options.map((o) => (
                   <option key={o}>{o}</option>
                 ))}
@@ -59,17 +70,19 @@ export default function Database({ navigate }: { navigate: Navigate }) {
           ))}
         </div>
         <div className="flex items-center gap-3.5 pb-0.5">
-          <span className="text-[12px] text-ink2">248,950 records</span>
+          <span className="text-[12px] text-ink2">{people.length} sample records · 248,950 total</span>
           <div className="flex items-center gap-1 rounded-[9px] border border-line bg-card p-1">
             <button
               aria-label="Grid view"
-              className="flex size-7 cursor-pointer items-center justify-center rounded-[7px] bg-ink text-paper2"
+              onClick={() => setLayout("grid")}
+              className={`flex size-7 cursor-pointer items-center justify-center rounded-[7px] ${layout === "grid" ? "bg-ink text-paper2" : "text-ink3"}`}
             >
               <LayoutGrid size={13.5} />
             </button>
             <button
               aria-label="List view"
-              className="flex size-7 cursor-pointer items-center justify-center rounded-[7px] text-ink3 transition-colors hover:text-ink"
+              onClick={() => setLayout("list")}
+              className={`flex size-7 cursor-pointer items-center justify-center rounded-[7px] ${layout === "list" ? "bg-ink text-paper2" : "text-ink3"} transition-colors hover:text-ink`}
             >
               <List size={13.5} />
             </button>
@@ -80,14 +93,14 @@ export default function Database({ navigate }: { navigate: Navigate }) {
       {/* list + map */}
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
         {/* person list */}
-        <div className="overflow-hidden rounded-[18px] border border-line bg-card">
-          {PEOPLE.map((p, i) => (
+        <div className={`overflow-hidden rounded-[18px] border border-line bg-card ${layout === "grid" ? "grid gap-px bg-line sm:grid-cols-2" : ""}`}>
+          {people.map((p, i) => (
             <motion.div
               key={p.id}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 * i, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="group flex items-center gap-4 px-5 py-4 transition-colors duration-300 hover:bg-paper2 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-line2"
+              className={`group flex items-center gap-4 bg-card px-5 py-4 transition-colors duration-300 hover:bg-paper2 ${layout === "list" ? "[&:not(:first-child)]:border-t [&:not(:first-child)]:border-line2" : "flex-col items-start"}`}
             >
               { }
               <img
@@ -149,25 +162,29 @@ export default function Database({ navigate }: { navigate: Navigate }) {
             {/* soft terrain blobs */}
             <div className="absolute -left-10 -top-10 size-44 rounded-full bg-[#e4ead9]" />
             <div className="absolute bottom-6 right-0 size-40 rounded-full bg-[#e9ecdf]" />
-            <IndiaMap
-              className="absolute inset-0 h-full w-full p-5"
-              fill={mapTab === "map" ? "rgba(253,250,244,0.85)" : "rgba(253,250,244,0.55)"}
-              stroke="rgba(35,32,27,0.22)"
-              dots={DOTS}
-              showTooltip={mapTab === "map"}
-              heat={mapTab === "heat"}
-            />
+            <div className="absolute inset-0 transition-transform duration-300" style={{ transform: `scale(${zoom})` }}>
+              <IndiaMap
+                className="h-full w-full p-5"
+                fill={mapTab === "map" ? "rgba(253,250,244,0.85)" : "rgba(253,250,244,0.55)"}
+                stroke="rgba(35,32,27,0.22)"
+                dots={DOTS}
+                showTooltip={mapTab === "map"}
+                heat={mapTab === "heat"}
+              />
+            </div>
 
             {/* zoom */}
             <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-[9px] border border-line bg-card shadow-sm">
               <button
                 aria-label="Zoom in"
+                onClick={() => setZoom((value) => Math.min(1.4, value + 0.1))}
                 className="flex size-8 cursor-pointer items-center justify-center border-b border-line2 text-ink2 transition-colors hover:text-ink"
               >
                 <Plus size={14} />
               </button>
               <button
                 aria-label="Zoom out"
+                onClick={() => setZoom((value) => Math.max(0.8, value - 0.1))}
                 className="flex size-8 cursor-pointer items-center justify-center text-ink2 transition-colors hover:text-ink"
               >
                 <Minus size={14} />

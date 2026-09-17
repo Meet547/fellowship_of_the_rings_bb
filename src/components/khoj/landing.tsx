@@ -31,10 +31,9 @@ import type { View, Navigate } from "@/lib/khoj/router";
 
 function SiteHeader({ navigate }: { navigate: Navigate }) {
   const links: { label: string; to: View }[] = [
-    { label: "Find", to: "find" },
-    { label: "Report", to: "report" },
+    { label: "Find", to: "auth" },
+    { label: "Report", to: "auth" },
     { label: "Support", to: "landing" },
-    { label: "Resources", to: "database" },
     { label: "About", to: "landing" },
   ];
   return (
@@ -54,7 +53,7 @@ function SiteHeader({ navigate }: { navigate: Navigate }) {
             </button>
           ))}
         </nav>
-        <Btn onClick={() => navigate("report")} className="h-10 px-5 text-[13px]">
+        <Btn onClick={() => navigate("auth")} className="h-10 px-5 text-[13px]">
           Get Help
         </Btn>
       </div>
@@ -98,7 +97,7 @@ function Hero({ navigate }: { navigate: Navigate }) {
             transition={{ delay: 0.68, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="mt-8 flex flex-wrap items-center gap-3.5"
           >
-            <Btn arrow onClick={() => navigate("report")}>
+            <Btn arrow onClick={() => navigate("auth")}>
               Report a Missing Person
             </Btn>
             <Btn variant="outline" onClick={() => navigate("scan")}>
@@ -347,7 +346,7 @@ function DarkInterlude({ navigate }: { navigate: Navigate }) {
               people across India
             </p>
             <div className="mt-8 flex flex-wrap gap-3.5">
-              <Btn variant="cream" arrow onClick={() => navigate("report")}>
+              <Btn variant="cream" arrow onClick={() => navigate("auth")}>
                 Report a Missing Person
               </Btn>
               <Btn variant="outlineDark" onClick={() => navigate("scan")}>

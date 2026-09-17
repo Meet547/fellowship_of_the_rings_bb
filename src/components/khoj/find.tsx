@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, ImageUp, Mic, Search } from "lucide-react";
-import { useState } from "react";
-import { Btn, ScriptNote } from "./ui";
+import { useRef, useState } from "react";
+import { Btn, ScriptNote, useToast } from "./ui";
 import { EXAMPLE_QUERIES, SEARCH_TIPS } from "@/lib/khoj/data";
 import type { Navigate } from "@/lib/khoj/router";
 
@@ -12,6 +12,9 @@ type Tab = "text" | "voice" | "photo";
 export default function Find({ navigate }: { navigate: Navigate }) {
   const [tab, setTab] = useState<Tab>("text");
   const [query, setQuery] = useState("");
+  const [listening, setListening] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "text", label: "Text Search" },
@@ -104,12 +107,16 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                     <span className="absolute inset-0 rounded-full bg-rust/25 animate-pulse-ring" />
                     <button
                       aria-label="Start listening"
+                      onClick={() => {
+                        setListening((active) => !active);
+                        toast(listening ? "Voice input paused." : "Listening… describe the person now.");
+                      }}
                       className="relative flex size-16 cursor-pointer items-center justify-center rounded-full bg-peach text-rust transition-transform hover:scale-105 animate-breathe"
                     >
                       <Mic size={24} strokeWidth={1.7} />
                     </button>
                   </div>
-                  <p className="mt-4 text-[13px] font-medium text-ink">Tap to speak</p>
+                  <p className="mt-4 text-[13px] font-medium text-ink">{listening ? "Listening…" : "Tap to speak"}</p>
                   <p className="mt-1 text-[11.5px] text-ink3">
                     Describe the person in Hindi or English
                   </p>
@@ -140,7 +147,7 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <button
-                    onClick={() => navigate("searching")}
+                    onClick={() => fileInput.current?.click()}
                     className="flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25"
                   >
                     <span className="flex size-12 items-center justify-center rounded-full bg-card text-ink2 shadow-sm">
@@ -151,6 +158,12 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                     </span>
                     <span className="text-[11px] text-ink3">JPG or PNG, up to 10MB</span>
                   </button>
+                  <input ref={fileInput} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(event) => {
+                    if (event.target.files?.[0]) {
+                      toast(`${event.target.files[0].name} selected. Ready to search.`);
+                      setTab("text");
+                    }
+                  }} />
                   <div className="mt-4 flex justify-end border-t border-line2 pt-4">
                     <Btn arrow onClick={() => navigate("searching")}>
                       Search Now
