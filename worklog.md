@@ -38,3 +38,21 @@ Work Log:
 
 Stage Summary:
 - Deliverable: redesigned KHOJ at src/app/page.tsx (15 views) with editorial type system, premium motion language, flat hairline component system; dev server on :3000, prod build green
+
+---
+Task ID: 3
+Agent: main (Super Z)
+Task: Rebuild KHOJ frontend to exactly match the user's two reference design images (cream heritage editorial aesthetic) — frontend only, functionality to be added later.
+
+Work Log:
+- Loaded fullstack-dev skill, re-initialized env; cleared stale Turbopack cache (old design's compiled CSS was being served — root cause of missing @theme tokens/display-hero)
+- Generated 10 design assets via z-ai image CLI (fixed invalid 1152x1152 size → 1024x1024): hero detective ink illustration, dark Varanasi hero, Varanasi sunset, detective-walk CTA, heritage station, 5 portraits (ramesh/aarav/sunita/rameshkumar/unknown)
+- Design system: Playfair Display (serif display) + Inter (UI) + Caveat (hand notes) via next/font; @theme tokens — paper #f2ede3 / card #fdfaf4 / ink #23201b / rust #c0452b / peach / sky / sage / night #171310; easeOutExpo motion; reduced-motion support
+- Fixed framer-motion IO deadlock: MaskLine observes un-clipped wrapper via useInView (whileInView on translated child inside overflow-hidden never fires); added 3.2s failsafe auto-reveal to Reveal/MaskLine/CountUp for headless robustness
+- Built 9 views routed by hash (src/lib/khoj/router.ts): landing (hero+stats+two-ways+photo split+dark interlude "Still searching"+features+dark CTA footer), auth (tabs, Google/Apple, skyline sketch), app shell (dark sidebar + topbar with ⌘K), dashboard (3 action cards, stats+India map, match alert), database (filters, person list, Map View/Heatmap with real GeoJSON India outline), find (text/voice/upload tabs, chips, tips), scan (upload, capture live, tips), report 4-step wizard (Details→Photos→Additional→Review→Submit), searching (stage timeline, rotating orbit, % progress→auto-nav), match (78% badge, detail rows, Dadar→Thane route map, feedback card, dark CTA)
+- India map: fetched real India GeoJSON, generated accurate SVG path + projected city dot coordinates (scripts/india-path.py); heatmap blobs moved inside SVG with feGaussianBlur for perfect alignment
+- Verified via agent-browser: all 9 views render, report wizard end-to-end (fill→review→submit→searching→auto-match), searching auto-navigation, match feedback toast, auth tabs, heatmap toggle, find Search Now, mobile 390px; 0 console errors; lint clean
+
+Stage Summary:
+- Deliverable: pixel-faithful KHOJ frontend at src/app/page.tsx (single route, hash-based view routing), components in src/components/khoj/{ui,india-map,landing,auth,shell,dashboard,database,find,scan,report,searching,match}.tsx
+- Frontend-only: forms/nav wired client-side; real AI search, auth, and data persistence deferred per user request

@@ -2,53 +2,85 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Landing from "@/components/khoj/landing";
-import { SignIn, SignUp } from "@/components/khoj/auth";
-import Onboarding from "@/components/khoj/onboarding";
+import Auth from "@/components/khoj/auth";
+import AppShell from "@/components/khoj/shell";
 import Dashboard from "@/components/khoj/dashboard";
-import FindSomeone from "@/components/khoj/find-someone";
-import FoundSomeone from "@/components/khoj/found-someone";
-import { SearchPage, SearchResultsPage } from "@/components/khoj/search";
-import CaseDetails from "@/components/khoj/case-details";
-import {
-  Messages,
-  MyCases,
-  Profile,
-  Resources,
-  SavedPage,
-} from "@/components/khoj/pages";
-import { useKhoj } from "@/lib/khoj/store";
-import { EASE, EASE_INOUT } from "@/components/khoj/shared";
+import Database from "@/components/khoj/database";
+import Find from "@/components/khoj/find";
+import Scan from "@/components/khoj/scan";
+import Report from "@/components/khoj/report";
+import Searching from "@/components/khoj/searching";
+import Match from "@/components/khoj/match";
+import { ToastProvider } from "@/components/khoj/ui";
+import { useView } from "@/lib/khoj/router";
+import { useEffect } from "react";
 
 export default function Home() {
-  const view = useKhoj((s) => s.view);
+  const { view, navigate } = useView();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [view]);
+
+  const appViews = ["dashboard", "database", "find", "scan"];
+  const isApp = appViews.includes(view);
+
+  const content = (() => {
+    switch (view) {
+      case "landing":
+        return <Landing navigate={navigate} />;
+      case "auth":
+        return <Auth navigate={navigate} />;
+      case "dashboard":
+        return (
+          <AppShell active="dashboard" navigate={navigate}>
+            <Dashboard navigate={navigate} />
+          </AppShell>
+        );
+      case "database":
+        return (
+          <AppShell active="database" navigate={navigate}>
+            <Database navigate={navigate} />
+          </AppShell>
+        );
+      case "find":
+        return (
+          <AppShell active="find" navigate={navigate}>
+            <Find navigate={navigate} />
+          </AppShell>
+        );
+      case "scan":
+        return (
+          <AppShell active="scan" navigate={navigate}>
+            <Scan navigate={navigate} />
+          </AppShell>
+        );
+      case "report":
+        return <Report navigate={navigate} />;
+      case "searching":
+        return <Searching navigate={navigate} />;
+      case "match":
+        return <Match navigate={navigate} />;
+      default:
+        return <Landing navigate={navigate} />;
+    }
+  })();
 
   return (
-    <div className="min-h-screen bg-paper">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12, transition: { duration: 0.28, ease: EASE_INOUT } }}
-          transition={{ duration: 0.55, ease: EASE }}
-        >
-          {view === "landing" && <Landing />}
-          {view === "signin" && <SignIn />}
-          {view === "signup" && <SignUp />}
-          {view === "onboarding" && <Onboarding />}
-          {view === "dashboard" && <Dashboard />}
-          {view === "find" && <FindSomeone />}
-          {view === "found" && <FoundSomeone />}
-          {view === "search" && <SearchPage />}
-          {view === "results" && <SearchResultsPage />}
-          {view === "case" && <CaseDetails />}
-          {view === "profile" && <Profile />}
-          {view === "cases" && <MyCases />}
-          {view === "messages" && <Messages />}
-          {view === "saved" && <SavedPage />}
-          {view === "resources" && <Resources />}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <ToastProvider>
+      <div className={`min-h-screen ${isApp ? "bg-paper" : "bg-paper"}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {content}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </ToastProvider>
   );
 }

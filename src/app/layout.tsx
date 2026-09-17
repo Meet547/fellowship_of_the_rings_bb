@@ -1,25 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Inter_Tight, IBM_Plex_Mono, Caveat } from "next/font/google";
+import { Playfair_Display, Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const display = Instrument_Serif({
-  variable: "--font-instrument",
-  weight: "400",
+const serif = Playfair_Display({
+  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap",
 });
 
-const sans = Inter_Tight({
-  variable: "--font-intertight",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const mono = IBM_Plex_Mono({
-  variable: "--font-plexmono",
-  weight: ["400", "500"],
+const sans = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
@@ -31,24 +24,23 @@ const hand = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "KHOJ — People. Connected.",
+  title: "KHOJ — People. Places. Possibilities.",
   description:
-    "A safer, more connected India. Khoj helps families, citizens, NGOs and authorities find missing people and reunite lives.",
+    "Because every person has a place to belong. KHOJ uses AI, open data and community effort to help find missing people across India.",
   keywords: ["Khoj", "missing people", "reunite", "India", "search", "NGO"],
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "KHOJ — People. Connected.",
-    description:
-      "Because everyone belongs somewhere. Find missing people and reunite lives.",
+    title: "KHOJ — People. Places. Possibilities.",
+    description: "Because every person has a place to belong.",
     siteName: "KHOJ",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f2ee",
+  themeColor: "#f2ede3",
   width: "device-width",
   initialScale: 1,
 };
@@ -61,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${display.variable} ${sans.variable} ${mono.variable} ${hand.variable} antialiased bg-paper text-ink font-sans`}
+        className={`${serif.variable} ${sans.variable} ${hand.variable} antialiased bg-paper text-ink font-sans`}
       >
         {children}
         <Toaster />
