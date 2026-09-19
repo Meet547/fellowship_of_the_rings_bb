@@ -8,7 +8,19 @@ import type {
   SearchResponse,
 } from "./api-types";
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
+/**
+ * Public API Gateway endpoint for the currently deployed KHOJ backend.
+ *
+ * This is intentionally safe to ship in frontend code: it is a public HTTPS
+ * endpoint, not an AWS credential or secret. NEXT_PUBLIC_API_BASE_URL can still
+ * override it for another stage/environment.
+ */
+const DEFAULT_API_BASE_URL =
+  "https://9zyg11hh53.execute-api.ap-southeast-2.amazonaws.com/dev";
+
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+).replace(/\/$/, "");
 
 // Route browser requests through the Next.js rewrite proxy (/api/proxy/*) so
 // the browser never makes a cross-origin request to API Gateway directly.
@@ -16,7 +28,7 @@ const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "")
 // match the current browser origin (e.g. localhost in dev).
 // Server-side calls (SSR/API routes) still go direct because BASE_URL is set.
 const isBrowser = typeof window !== "undefined";
-const FETCH_BASE = isBrowser && BASE_URL ? "/api/proxy" : BASE_URL;
+const FETCH_BASE = isBrowser ? "/api/proxy" : BASE_URL;
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 
@@ -52,10 +64,6 @@ async function apiFetch<T>(
   body: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
-  if (!BASE_URL) {
-    throw new ApiError(0, "API is not configured. Please contact support.");
-  }
-
   const res = await fetch(`${FETCH_BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -87,10 +95,6 @@ async function apiGet<T>(
   query?: Record<string, string>,
   signal?: AbortSignal,
 ): Promise<T> {
-  if (!BASE_URL) {
-    throw new ApiError(0, "API is not configured. Please contact support.");
-  }
-
   const search = new URLSearchParams(query);
   const qs = search.toString();
 
