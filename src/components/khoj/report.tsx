@@ -12,6 +12,8 @@ import {
 import { useRef, useState } from "react";
 import { Btn, Field, Logo, ScriptNote, SelectInput, TextArea, TextInput, useToast } from "./ui";
 import type { Navigate } from "@/lib/khoj/router";
+import { createMissingCase, ApiError } from "@/lib/khoj/api";
+import type { FoundReportMatch, Match, MissingCasePayload } from "@/lib/khoj/api-types";
 
 const STEPS = ["Details", "Photos", "Additional Info", "Review"] as const;
 
@@ -40,6 +42,37 @@ const EMPTY: Form = {
   medical: "",
   contact: "",
 };
+
+/** sessionStorage key for the in-progress report draft. */
+const DRAFT_KEY = "khoj_report_draft";
+/** sessionStorage key for the in-progress step number. */
+const DRAFT_STEP_KEY = "khoj_report_draft_step";
+
+function loadDraft(): { form: Form; step: number } {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    const rawStep = sessionStorage.getItem(DRAFT_STEP_KEY);
+    const form: Form = raw ? { ...EMPTY, ...(JSON.parse(raw) as Partial<Form>) } : EMPTY;
+    const step = rawStep ? Math.max(1, Math.min(4, Number(rawStep))) : 1;
+    return { form, step };
+  } catch {
+    return { form: EMPTY, step: 1 };
+  }
+}
+
+function saveDraft(form: Form, step: number) {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+    sessionStorage.setItem(DRAFT_STEP_KEY, String(step));
+  } catch { /* storage unavailable — silent */ }
+}
+
+function clearDraft() {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+    sessionStorage.removeItem(DRAFT_STEP_KEY);
+  } catch { /* ignore */ }
+}
 
 function Stepper({ step }: { step: number }) {
   return (
@@ -79,6 +112,7 @@ function Stepper({ step }: { step: number }) {
 }
 
 function UrgentHelp() {
+  const toast = useToast();
   return (
     <div className="rounded-[18px] bg-peach p-5">
       <div className="flex size-10 items-center justify-center rounded-full bg-rust text-paper2">
@@ -92,7 +126,10 @@ function UrgentHelp() {
       <p className="mt-3 text-[12px] leading-relaxed text-ink2">
         Or contact a trusted NGO through our network.
       </p>
-      <button className="group mt-4 inline-flex cursor-pointer items-center gap-1.5 text-[12.5px] font-medium text-ink">
+      <button
+        onClick={() => toast("Support resources are not available yet. For urgent help, call 112.")}
+        className="group mt-4 inline-flex cursor-pointer items-center gap-1.5 text-[12.5px] font-medium text-ink"
+      >
         <span className="link-sweep">View Support Resources</span>
         <ArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" />
       </button>
@@ -107,14 +144,140 @@ const slide = {
   transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
 };
 
+/* ── match rendering ────────────────────────────────────────────────── */
+
+type MatchOutput = {
+  title: string;
+  meta: string;
+  detail: string;
+  score: number | null;
+};
+
+function normalizeMatch(m: Match | FoundReportMatch): MatchOutput | null {
+  const nested = (m as Partial<Match>)?.candidate ?? null;
+  const flat = m as Partial<FoundReportMatch>;
+
+  if (nested) {
+    const label =
+      nested.name?.trim() ||
+      (typeof flat.name === "string" && flat.name.trim() ? flat.name.trim() : "") ||
+      "Unidentified person";
+    const age = nested.age_range
+      ? nested.age_range[0] === nested.age_range[1]
+        ? `${nested.age_range[0]} yrs`
+        : `~${nested.age_range[0]}-${nested.age_range[1]} yrs`
+      : typeof nested.age === "number"
+        ? `${nested.age} yrs`
+        : typeof nested.age === "string"
+          ? nested.age.trim()
+          : "";
+    const meta: string[] = [];
+    if (nested.gender) meta.push(nested.gender);
+    if (age) meta.push(age);
+    const location = nested.location ?? nested.district ?? nested.state;
+    if (location) meta.push(location);
+    return {
+      title: label,
+      meta: meta.join(" · ") || "No details recorded",
+      detail: nested.description ?? nested.remarks ?? "",
+      score: typeof (m as Match).final_score === "number" ? (m as Match).final_score : null,
+    };
+  }
+
+  const label =
+    (typeof flat.name === "string" && flat.name.trim() ? flat.name.trim() : "") ||
+    "Unidentified person";
+  const meta: string[] = [];
+  if (flat.gender) meta.push(flat.gender);
+  if (flat.age) meta.push(String(flat.age));
+  if (flat.last_seen_location) meta.push(flat.last_seen_location);
+  return {
+    title: label,
+    meta: meta.join(" · ") || "No details recorded",
+    detail: flat.description ?? flat.distinctive_marks ?? "",
+    score: typeof flat.final_score === "number" ? flat.final_score : null,
+  };
+}
+
+function matchTip(searchStatus: string | undefined): string | null {
+  if (!searchStatus) return null;
+  if (searchStatus === "no_searchable_information") {
+    return "We couldn't extract enough identifying details to run a match search on submission. You can still update this case later.";
+  }
+  if (searchStatus === "awaiting_processing") {
+    return "The match search is queued and will run when the platform processes this case.";
+  }
+  return null;
+}
+
 export default function Report({ navigate }: { navigate: Navigate }) {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<Form>(EMPTY);
+  const [step, setStep] = useState(() => loadDraft().step);
+  const [form, setForm] = useState<Form>(() => loadDraft().form);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<{
+    case_id: string;
+    search_status?: string;
+    matches: MatchOutput[];
+  } | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
-  const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  /** Update a single form field, then persist the draft. */
+  const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm((f) => {
+      const next = { ...f, [k]: e.target.value };
+      saveDraft(next, step);
+      return next;
+    });
+  };
+
+  /** Navigate to a step and persist the new step number. */
+  const goStep = (n: number) => {
+    setStep(n);
+    saveDraft(form, n);
+  };
+
+  const handleSubmit = async () => {
+    if (!form.contact) {
+      toast("Add a contact number so responders can reach you.");
+      return;
+    }
+    setSubmitting(true);
+    const payload: MissingCasePayload = {
+      name: form.name,
+      age: form.age,
+      gender: form.gender,
+      last_seen_location: form.location,
+      last_seen_date: form.date,
+      description: form.details,
+      ...(form.clothing ? { clothing: form.clothing } : {}),
+      // Frontend field "marks" maps to backend field "distinctive_marks".
+      ...(form.marks ? { distinctive_marks: form.marks } : {}),
+      ...(form.medical ? { medical: form.medical } : {}),
+      contact: form.contact,
+    };
+    try {
+      const result = await createMissingCase(payload);
+      clearDraft();
+      const rawMatches = Array.isArray(result.matches) ? result.matches : [];
+      setSubmitted({
+        case_id: result.case_id,
+        search_status: result.search_status,
+        matches: rawMatches
+          .map(normalizeMatch)
+          .filter((m): m is MatchOutput => m !== null),
+      });
+    } catch (err) {
+      toast(
+        err instanceof ApiError
+          ? err.message
+          : "Submission failed. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const reviewRows: [string, string][] = [
     ["Full Name", form.name || "—"],
@@ -198,9 +361,9 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                       onChange={set("location")}
                     />
                   </Field>
-                  <Field label="Date Last Seen" required>
+                  <Field label="Date Last Seen" required htmlFor="report-date">
                     <div className="relative">
-                      <TextInput type="date" value={form.date} onChange={set("date")} />
+                      <TextInput id="report-date" type="date" value={form.date} onChange={set("date")} />
                       <CalendarDays
                         size={15}
                         className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-ink3"
@@ -221,7 +384,7 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                       toast("Complete all required details before continuing.");
                       return;
                     }
-                    setStep(2);
+                    goStep(2);
                   }}>
                     Next
                   </Btn>
@@ -233,26 +396,26 @@ export default function Report({ navigate }: { navigate: Navigate }) {
               <motion.section key="s2" {...slide} className="mt-4 rounded-[18px] border border-line bg-card p-6">
                 <h2 className="font-serif text-[18px] font-medium text-ink">Add photographs</h2>
                 <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink2">
-                  Clear photos help our AI find matches faster. You can add up to 4 photos.
+                  Photo upload is not available yet. You can select photos to attach to your report, but they will not be sent or processed at this time.
                 </p>
                 <button type="button" onClick={() => photoInput.current?.click()} className="mt-5 flex h-[190px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25">
                   <span className="flex size-12 items-center justify-center rounded-full bg-card text-ink2 shadow-sm">
                     <ImageUp size={20} strokeWidth={1.7} />
                   </span>
-                  <span className="text-[13px] font-medium text-ink">Click to upload photos</span>
-                  <span className="text-[11px] text-ink3">JPG or PNG, up to 10MB each</span>
+                  <span className="text-[13px] font-medium text-ink">Select photos (not uploaded)</span>
+                  <span className="text-[11px] text-ink3">JPG or PNG · upload coming soon</span>
                 </button>
                 <input ref={photoInput} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={(event) => {
                   const selected = Array.from(event.target.files ?? []).slice(0, 4);
                   setPhotos(selected.map((file) => file.name));
                   if (selected.length) toast(`${selected.length} photo${selected.length === 1 ? "" : "s"} added.`);
                 }} />
-                {photos.length > 0 && <p className="mt-2 text-[11px] text-badgegt">{photos.length} photo(s) selected</p>}
+                {photos.length > 0 && <p className="mt-2 text-[11px] text-badgegt">{photos.length} photo(s) noted · not sent to server</p>}
                 <div className="mt-6 flex items-center justify-between">
-                  <Btn variant="ghost" onClick={() => setStep(1)} className="gap-1.5">
+                  <Btn variant="ghost" onClick={() => goStep(1)} className="gap-1.5">
                     <ArrowLeft size={14} /> Back
                   </Btn>
-                  <Btn arrow onClick={() => setStep(3)}>
+                  <Btn arrow onClick={() => goStep(3)}>
                     Next
                   </Btn>
                 </div>
@@ -291,7 +454,7 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                         ))}
                       </SelectInput>
                     </Field>
-                    <Field label="Contact Number">
+                    <Field label="Contact Number" required>
                       <TextInput
                         placeholder="Your phone number"
                         value={form.contact}
@@ -301,17 +464,23 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                   </div>
                 </div>
                 <div className="mt-6 flex items-center justify-between">
-                  <Btn variant="ghost" onClick={() => setStep(2)} className="gap-1.5">
+                  <Btn variant="ghost" onClick={() => goStep(2)} className="gap-1.5">
                     <ArrowLeft size={14} /> Back
                   </Btn>
-                  <Btn arrow onClick={() => setStep(4)}>
+                  <Btn arrow onClick={() => {
+                    if (!form.contact.trim()) {
+                      toast("Contact number is required.");
+                      return;
+                    }
+                    goStep(4);
+                  }}>
                     Next
                   </Btn>
                 </div>
               </motion.section>
             )}
 
-            {step === 4 && (
+            {step === 4 && !submitted && (
               <motion.section key="s4" {...slide} className="mt-4 rounded-[18px] border border-line bg-card p-6">
                 <h2 className="font-serif text-[18px] font-medium text-ink">
                   Review before submitting
@@ -331,17 +500,89 @@ export default function Report({ navigate }: { navigate: Navigate }) {
                   ))}
                 </div>
                 <div className="mt-6 flex items-center justify-between">
-                  <Btn variant="ghost" onClick={() => setStep(3)} className="gap-1.5">
+                  <Btn variant="ghost" onClick={() => goStep(3)} className="gap-1.5" disabled={submitting}>
                     <ArrowLeft size={14} /> Back
                   </Btn>
-                  <Btn arrow onClick={() => {
-                    if (!form.contact) {
-                      toast("Add a contact number so responders can reach you.");
-                      return;
-                    }
-                    navigate("searching");
-                  }}>
-                    Submit Report
+                  <Btn arrow onClick={handleSubmit} disabled={submitting}>
+                    {submitting ? "Submitting\u2026" : "Submit Report"}
+                  </Btn>
+                </div>
+              </motion.section>
+            )}
+
+            {submitted && (
+              <motion.section key="success" {...slide} className="mt-4 rounded-[18px] border border-line bg-card p-6">
+                <div className="flex flex-col items-center gap-4 py-4 text-center">
+                  <span className="flex size-16 items-center justify-center rounded-full bg-badgeg text-badgegt">
+                    <CheckCircle2 size={30} strokeWidth={1.8} />
+                  </span>
+                  <h2 className="font-serif text-[20px] font-medium text-ink">Report submitted</h2>
+                  <p className="max-w-[340px] text-[13px] leading-relaxed text-ink2">
+                    Your report has been received and checked against found-person records.
+                  </p>
+                  <div className="mt-1 flex w-full items-center justify-between gap-3 rounded-[12px] border border-line bg-paper2 px-4 py-3">
+                    <div className="text-left">
+                      <div className="text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink3">Case ID</div>
+                      <div className="mt-0.5 font-mono text-[14px] font-medium text-ink">{submitted.case_id}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(submitted.case_id)
+                          .then(() => toast("Case ID copied."))
+                          .catch(() => toast("Copy failed \u2014 please copy manually."));
+                      }}
+                      className="shrink-0 rounded-[8px] border border-line bg-card px-3 py-1.5 text-[11px] font-medium text-ink transition-colors hover:border-ink/35 cursor-pointer"
+                    >
+                      Copy ID
+                    </button>
+                  </div>
+                  <p className="text-[11.5px] text-ink3">Save your Case ID to track this report.</p>
+
+                  {matchTip(submitted.search_status) && (
+                    <p className="w-full rounded-[12px] border border-line bg-paper2 px-4 py-3 text-left text-[12.5px] leading-relaxed text-ink2">
+                      {matchTip(submitted.search_status)}
+                    </p>
+                  )}
+
+                  {submitted.matches.length > 0 && (
+                    <div className="w-full text-left">
+                      <h3 className="text-[13.5px] font-semibold text-ink">
+                        Potential matches for review ({submitted.matches.length})
+                      </h3>
+                      <p className="mt-1 text-[12px] leading-relaxed text-ink2">
+                        These records are algorithmically similar. Scores are similarity
+                        rankings, not identity confirmations — human verification is required.
+                      </p>
+                      <div className="mt-3.5 space-y-3">
+                        {submitted.matches.map((m, i) => (
+                          <div key={i} className="rounded-[14px] border border-line bg-paper2 p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <div className="text-[13.5px] font-semibold text-ink">{m.title}</div>
+                                <div className="mt-0.5 text-[12px] text-ink2">{m.meta}</div>
+                              </div>
+                              <span className="shrink-0 rounded-full bg-badgeg px-2.5 py-1 text-[11px] font-semibold text-badgegt">
+                                Potential Match
+                              </span>
+                            </div>
+                            {m.detail && (
+                              <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed text-ink2">
+                                {m.detail}
+                              </p>
+                            )}
+                            {m.score !== null && (
+                              <div className="mt-3 text-[11px] text-ink3">
+                                Match Score {Math.round(m.score)}%
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Btn className="mt-2" onClick={() => navigate("dashboard")}>
+                    Back to Dashboard
                   </Btn>
                 </div>
               </motion.section>

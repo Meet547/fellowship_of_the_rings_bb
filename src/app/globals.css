@@ -98,6 +98,11 @@ img {
   contain-intrinsic-size: 1px 520px;
 }
 
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 ::selection {
   background: #c0452b;
   color: #fdfaf4;

@@ -10,6 +10,7 @@ export const VIEWS = [
   "database",
   "find",
   "scan",
+  "found",
   "report",
   "searching",
   "match",
@@ -43,12 +44,38 @@ export function useView() {
       const next = viewFromHash();
       const isPublic = next === "landing" || next === "auth" || next === "not-found";
       if (authStatus === "loading") return;
-      if (authStatus === "authenticated" && (next === "auth" || oauthCallbackPending)) {
-        setOAuthCallbackPending(false);
-        window.location.hash = "#/dashboard";
+
+      if (authStatus === "authenticated") {
+        if (oauthCallbackPending) setOAuthCallbackPending(false);
+        if (typeof window !== "undefined" && window.location.search) {
+          window.history.replaceState({}, document.title, window.location.pathname + "#/dashboard");
+          setView("dashboard");
+          return;
+        }
+        if (next === "auth" || next === "landing") {
+          window.location.hash = "#/dashboard";
+          // hashchange will fire again and re-run sync with next === "dashboard"
+          return;
+        }
+        setView(next);
         return;
       }
-      setView(!isPublic && authStatus !== "authenticated" ? "auth" : next);
+
+      // authStatus === "unauthenticated"
+      if (oauthCallbackPending) {
+        // The OAuth callback URL params are still present while auth-state is retrying.
+        // Only clear the pending flag (and stop blocking) once Amplify has finished
+        // cleaning the URL (i.e., search params are gone) — meaning it truly gave up.
+        const stillHasCode = typeof window !== "undefined" && isOAuthCallback();
+        if (!stillHasCode) {
+          setOAuthCallbackPending(false);
+        }
+        // While still pending (code in URL), stay on "auth" view but don't redirect
+        setView("auth");
+        return;
+      }
+
+      setView(!isPublic ? "auth" : next);
     };
     sync();
     window.addEventListener("hashchange", sync);

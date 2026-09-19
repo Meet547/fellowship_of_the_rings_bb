@@ -8,6 +8,7 @@ import Dashboard from "@/components/khoj/dashboard";
 import Database from "@/components/khoj/database";
 import Find from "@/components/khoj/find";
 import Scan from "@/components/khoj/scan";
+import Found from "@/components/khoj/found";
 import Report from "@/components/khoj/report";
 import PageLoader from "@/components/khoj/page-loader";
 import Searching from "@/components/khoj/searching";
@@ -16,32 +17,24 @@ import NotFoundView from "@/components/khoj/not-found";
 import SiteFooter from "@/components/khoj/footer";
 import { ToastProvider } from "@/components/khoj/ui";
 import { useView } from "@/lib/khoj/router";
-import { useEffect, useState, type ReactNode } from "react";
+import { SearchProvider } from "@/lib/khoj/search-context";
+import { useEffect, type ReactNode } from "react";
 
 function RouteTransition({ view, navigate, children }: { view: string; navigate: ReturnType<typeof useView>["navigate"]; children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 700);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   return (
-    <>
-      <AnimatePresence>{loading && <PageLoader />}</AnimatePresence>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        >
-          {children}
-          <SiteFooter navigate={navigate} />
-        </motion.div>
-      </AnimatePresence>
-    </>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={view}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: "transform, opacity" }}
+      >
+        {children}
+        <SiteFooter navigate={navigate} />
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -71,7 +64,7 @@ export default function Home() {
       case "database":
         return (
           <AppShell active="database" navigate={navigate}>
-            <Database navigate={navigate} />
+            <Database />
           </AppShell>
         );
       case "find":
@@ -86,6 +79,8 @@ export default function Home() {
             <Scan navigate={navigate} />
           </AppShell>
         );
+      case "found":
+        return <Found navigate={navigate} />;
       case "report":
         return <Report navigate={navigate} />;
       case "searching":
@@ -101,9 +96,12 @@ export default function Home() {
 
   return (
     <ToastProvider>
-      <div className={`min-h-screen ${isApp ? "bg-paper" : "bg-paper"}`}>
-        <RouteTransition key={view} view={view} navigate={navigate}>{content}</RouteTransition>
-      </div>
+      <SearchProvider>
+        <div className={`min-h-screen ${isApp ? "bg-paper" : "bg-paper"}`}>
+          <RouteTransition key={view} view={view} navigate={navigate}>{content}</RouteTransition>
+        </div>
+      </SearchProvider>
     </ToastProvider>
   );
 }
+

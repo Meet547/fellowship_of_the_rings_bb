@@ -6,13 +6,14 @@ import { useRef, useState } from "react";
 import { Btn, ScriptNote, useToast } from "./ui";
 import { EXAMPLE_QUERIES, SEARCH_TIPS } from "@/lib/khoj/data";
 import type { Navigate } from "@/lib/khoj/router";
+import { useSearch } from "@/lib/khoj/search-context";
 
 type Tab = "text" | "voice" | "photo";
 
 export default function Find({ navigate }: { navigate: Navigate }) {
+  const { setTextQuery, setSearchResults, setSearchError } = useSearch();
   const [tab, setTab] = useState<Tab>("text");
   const [query, setQuery] = useState("");
-  const [listening, setListening] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -28,8 +29,8 @@ export default function Find({ navigate }: { navigate: Navigate }) {
         Find a Person
       </h1>
       <p className="mt-1.5 max-w-[600px] text-[13px] leading-relaxed text-ink2">
-        Describe the person you are looking for. You can type, speak, or upload a photo.
-        Our AI will search across government databases, news, and trusted sources.
+        Describe the person you are looking for, and let our AI match the details
+        against missing and found-person records.
       </p>
 
       <div className="mt-7 grid items-start gap-8 lg:grid-cols-[1fr_300px]">
@@ -71,6 +72,7 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                     value={query}
                     maxLength={300}
                     onChange={(e) => setQuery(e.target.value)}
+                    aria-label="Describe the person you are looking for"
                     placeholder={
                       'Describe the person... (e.g. "60-year old man, wearing white kurta, last seen in Lucknow")'
                     }
@@ -87,7 +89,19 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                       </button>
                       <span className="text-[11px] text-ink3">{query.length}/300</span>
                     </div>
-                    <Btn arrow onClick={() => navigate("searching")} disabled={query.trim().length === 0}>
+                    <Btn
+                      arrow
+                      onClick={() => {
+                        if (!query.trim()) return;
+                        // Clear any stale persisted query before starting a new search.
+                        try { sessionStorage.removeItem("khoj_search_query"); } catch { /* ignore */ }
+                        setSearchResults(null);
+                        setSearchError(null);
+                        setTextQuery(query.trim());
+                        navigate("searching");
+                      }}
+                      disabled={query.trim().length === 0}
+                    >
                       Search Now
                     </Btn>
                   </div>
@@ -101,40 +115,22 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex min-h-[168px] flex-col items-center justify-center text-center"
+                  className="flex min-h-[168px] flex-col items-center justify-center gap-3 text-center"
                 >
-                  <div className="relative">
-                    <span className="absolute inset-0 rounded-full bg-rust/25 animate-pulse-ring" />
-                    <button
-                      aria-label="Start listening"
-                      onClick={() => {
-                        setListening((active) => !active);
-                        toast(listening ? "Voice input paused." : "Listening… describe the person now.");
-                      }}
-                      className="relative flex size-16 cursor-pointer items-center justify-center rounded-full bg-peach text-rust transition-transform hover:scale-105 animate-breathe"
-                    >
-                      <Mic size={24} strokeWidth={1.7} />
-                    </button>
-                  </div>
-                  <p className="mt-4 text-[13px] font-medium text-ink">{listening ? "Listening…" : "Tap to speak"}</p>
-                  <p className="mt-1 text-[11.5px] text-ink3">
-                    Describe the person in Hindi or English
+                  <span className="flex size-14 items-center justify-center rounded-full bg-paper2 text-ink3">
+                    <Mic size={22} strokeWidth={1.7} />
+                  </span>
+                  <p className="text-[13px] font-medium text-ink">Voice search is not available yet</p>
+                  <p className="mt-0.5 max-w-[280px] text-[12px] leading-relaxed text-ink2">
+                    Use the Text Search tab to describe the person in Hindi or English.
                   </p>
-                  {/* waveform */}
-                  <div className="mt-4 flex h-6 items-center gap-[3px]">
-                    {[10, 18, 26, 16, 24, 12, 20, 8].map((h, i) => (
-                      <motion.span
-                        key={i}
-                        className="w-[3px] rounded-full bg-ink/25"
-                        animate={{ height: [h, h * 0.4 + 4, h] }}
-                        transition={{
-                          duration: 1.1 + i * 0.09,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTab("text")}
+                    className="mt-1 rounded-full border border-line bg-card px-4 py-1.5 text-[12px] font-medium text-ink transition-colors hover:border-ink/35"
+                  >
+                    Switch to Text Search
+                  </button>
                 </motion.div>
               )}
 
@@ -146,9 +142,13 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  <p className="text-[12.5px] leading-relaxed text-ink2">
+                    Photo search is not available yet. You can preview a photo below, and
+                    use text search to describe the person for now.
+                  </p>
                   <button
                     onClick={() => fileInput.current?.click()}
-                    className="flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25"
+                    className="mt-4 flex h-[150px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25"
                   >
                     <span className="flex size-12 items-center justify-center rounded-full bg-card text-ink2 shadow-sm">
                       <ImageUp size={20} strokeWidth={1.7} />
@@ -156,16 +156,19 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                     <span className="text-[13px] font-medium text-ink">
                       Click to upload a photo
                     </span>
-                    <span className="text-[11px] text-ink3">JPG or PNG, up to 10MB</span>
+                    <span className="text-[11px] text-ink3">JPG or PNG · not processed yet</span>
                   </button>
                   <input ref={fileInput} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(event) => {
                     if (event.target.files?.[0]) {
-                      toast(`${event.target.files[0].name} selected. Ready to search.`);
+                      toast(`${event.target.files[0].name} selected — photo matching is coming soon. Use text search instead.`);
                       setTab("text");
                     }
                   }} />
                   <div className="mt-4 flex justify-end border-t border-line2 pt-4">
-                    <Btn arrow onClick={() => navigate("searching")}>
+                    <Btn
+                      variant="outline"
+                      onClick={() => toast("Image search is coming soon. Please use text search.")}
+                    >
                       Search Now
                     </Btn>
                   </div>

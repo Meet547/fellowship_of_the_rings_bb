@@ -17,6 +17,8 @@ import {
 import { useState, type ReactNode } from "react";
 import { Logo, useToast } from "./ui";
 import type { Navigate, View } from "@/lib/khoj/router";
+import { useSearch } from "@/lib/khoj/search-context";
+import { useUserProfile } from "@/lib/khoj/use-user";
 import { signOut } from "aws-amplify/auth";
 import { configureAmplify } from "@/lib/amplify";
 
@@ -30,13 +32,15 @@ const NAV: { icon: ReactNode; label: string; view: View }[] = [
 
 export function Topbar({ navigate }: { navigate: Navigate }) {
   const toast = useToast();
+  const { setTextQuery, setSearchResults, setSearchError } = useSearch();
   const [query, setQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: "match", title: "Potential match found", body: "Ramesh Sharma matches your recent search.", view: "match" as const },
-    { id: "review", title: "Report under review", body: "Your report MP-2481 is being reviewed by our partners.", view: "report" as const },
-  ]);
+  const profile = useUserProfile();
+  // Notifications are not yet available from the backend.
+  // Start empty so we never display fabricated activity to the user.
+  const [notifications, setNotifications] = useState<{ id: string; title: string; body: string; view: "match" | "report" }[]>([]);
+
   const handleSignOut = async () => {
     try {
       configureAmplify();
@@ -52,12 +56,19 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
       <div className="relative hidden w-[220px] items-center sm:flex">
         <Search size={14.5} className="absolute left-3.5 text-ink3" />
         <input
+          aria-label="Search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && query.trim()) {
-              toast(`Searching the database for “${query.trim()}”`);
-              navigate("database");
+            const text = query.trim();
+            if (event.key === "Enter" && text) {
+              // Run the same real /search pipeline as the Find page:
+              // clear stale persisted state, then hand off to Searching.
+              try { sessionStorage.removeItem("khoj_search_query"); } catch { /* ignore */ }
+              setSearchResults(null);
+              setSearchError(null);
+              setTextQuery(text);
+              navigate("searching");
             }
           }}
           placeholder="Search by name, location, or case ID..."
@@ -87,12 +98,7 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
         <div className="absolute right-16 top-14 z-40 w-[310px] overflow-hidden rounded-[14px] border border-line bg-card shadow-[0_18px_45px_-20px_rgba(35,32,27,0.45)]">
           <div className="flex items-center justify-between border-b border-line2 px-4 py-3">
             <span className="text-[13px] font-semibold text-ink">Notifications</span>
-            <button
-              className="text-[10.5px] font-medium text-ink3 hover:text-ink"
-              onClick={() => setNotifications([])}
-            >
-              Mark all read
-            </button>
+            <span className="rounded-full border border-line bg-paper2 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-ink3">Coming soon</span>
           </div>
           {notifications.length > 0 ? notifications.map((notification) => (
             <button
@@ -113,7 +119,10 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
               </div>
             </button>
           )) : (
-            <div className="px-4 py-6 text-center text-[12px] text-ink3">You&rsquo;re all caught up.</div>
+            <div className="px-4 py-6 text-center">
+              <p className="text-[12px] text-ink3">Smart alerts are not yet available.</p>
+              <p className="mt-1 text-[11px] text-ink3">You&rsquo;ll be notified here when this feature launches.</p>
+            </div>
           )}
         </div>
       )}
@@ -121,18 +130,18 @@ export function Topbar({ navigate }: { navigate: Navigate }) {
         onClick={() => setProfileOpen((open) => !open)}
         className="flex cursor-pointer items-center gap-2.5 rounded-full py-1 pl-1 pr-2.5 transition-colors hover:bg-paper2"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-rust text-[12px] font-semibold text-paper2">
-          M
+        <span className="flex size-8 items-center justify-center rounded-full bg-rust text-[12px] font-semibold text-paper2 uppercase">
+          {profile.initial}
         </span>
         <span className="hidden text-left leading-tight md:block">
-          <span className="block text-[12px] font-semibold text-ink">Meet</span>
-          <span className="block text-[10px] text-ink3">Citizen</span>
+          <span className="block text-[12px] font-semibold text-ink max-w-[110px] truncate">{profile.name || "User"}</span>
+          <span className="block text-[10px] text-ink3 max-w-[110px] truncate">{profile.email || "Citizen"}</span>
         </span>
         <ChevronDown size={13} className="text-ink3" />
       </button>
       {profileOpen && (
         <div className="absolute right-5 top-14 z-40 w-44 rounded-[12px] border border-line bg-card p-2 shadow-lg">
-          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-ink2 hover:bg-paper2" onClick={() => toast("Profile settings are ready to connect.")}>Profile settings</button>
+          <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-ink2 hover:bg-paper2" onClick={() => toast("Profile settings are not available yet.")}>Profile settings</button>
           <button className="w-full rounded-[8px] px-3 py-2 text-left text-[12px] text-rust hover:bg-peach/50" onClick={() => void handleSignOut()}>Sign out</button>
         </div>
       )}
@@ -156,7 +165,7 @@ export default function AppShell({
     <div className="relative flex h-full min-h-screen flex-col bg-night">
       <button
         onClick={() => {
-          navigate("landing");
+          navigate("dashboard");
           setMobileOpen(false);
         }}
         aria-label="Go to KHOJ home"

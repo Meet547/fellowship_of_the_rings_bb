@@ -145,7 +145,21 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
       socialProviders.length > 0,
   );
 
-  useEffect(() => configureAmplify(), []);
+  useEffect(() => {
+    configureAmplify();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get("error");
+      const errorDesc = params.get("error_description");
+      if (error || errorDesc) {
+        if (errorDesc?.includes("RedirectUri")) {
+          toast("Google sign-in configuration notice: Ensure http://localhost:3000 is listed in your Cognito allowed callbacks.");
+        } else if (error) {
+          toast(`Social sign-in notice: ${errorDesc || error}`);
+        }
+      }
+    }
+  }, []);
 
   const errorMessage = (error: unknown) => {
     const name = error instanceof Error ? error.name : "";
@@ -325,10 +339,10 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
             ) : mode === "forgot" ? (
               <>
                 <p className="text-[13px] leading-relaxed text-ink2">Enter the code sent to your email and choose a new password.</p>
-                <input inputMode="numeric" placeholder="Verification code" value={code} onChange={(e) => setCode(e.target.value)} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 px-3.5 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
+                <input inputMode="numeric" aria-label="Verification code" placeholder="Verification code" value={code} onChange={(e) => setCode(e.target.value)} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 px-3.5 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
                 <div className="relative">
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
-                  <input type={showPw ? "text" : "password"} placeholder="New password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-11 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
+                  <input type={showPw ? "text" : "password"} aria-label="New password" placeholder="New password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required className="h-11 w-full rounded-[10px] border border-line bg-paper2 pl-10 pr-11 text-[13.5px] text-ink placeholder:text-ink3 focus:border-ink/45 focus:outline-none focus:ring-4 focus:ring-rust/10" />
                 </div>
                 <Btn type="submit" arrow className="w-full" disabled={loading}>{loading ? "Resetting..." : "Reset password"}</Btn>
                 <button type="button" onClick={() => setMode("main")} className="w-full text-[11.5px] text-ink3 hover:text-ink2">Back to sign in</button>
@@ -338,6 +352,7 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
               <div className="relative">
                 <UserRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
                 <input
+                  aria-label="Full name"
                   placeholder="Full name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -362,6 +377,7 @@ export default function Auth({ navigate }: { navigate: Navigate }) {
               <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink3" />
               <input
                 type={showPw ? "text" : "password"}
+                aria-label="Password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

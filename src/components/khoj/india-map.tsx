@@ -35,14 +35,12 @@ export function IndiaMap({
   fill = "rgba(35,32,27,0.10)",
   stroke = "rgba(35,32,27,0.28)",
   dots = [],
-  showTooltip = false,
   heat = false,
 }: {
   className?: string;
   fill?: string;
   stroke?: string;
   dots?: MapDot[];
-  showTooltip?: boolean;
   heat?: boolean;
 }) {
   const dotColor = {
@@ -51,11 +49,29 @@ export function IndiaMap({
     low: "#e3c584",
   };
   return (
-    <svg viewBox="0 0 340 400" className={className} role="img" aria-label="Map of India">
+    <svg
+      viewBox="0 0 340 400"
+      className={className}
+      role="img"
+      aria-label="Map of India"
+      style={{ transform: "translateZ(0)", willChange: "transform" }}
+    >
       <defs>
-        <filter id="khoj-heat-blur" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="9" />
-        </filter>
+        <radialGradient id="heat-high" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#c0452b" stopOpacity="0.55" />
+          <stop offset="50%" stopColor="#c0452b" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#c0452b" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="heat-medium" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#d97b3f" stopOpacity="0.5" />
+          <stop offset="50%" stopColor="#d97b3f" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#d97b3f" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="heat-low" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#e3c584" stopOpacity="0.45" />
+          <stop offset="50%" stopColor="#e3c584" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#e3c584" stopOpacity="0" />
+        </radialGradient>
       </defs>
       <path
         d={PATH}
@@ -65,17 +81,20 @@ export function IndiaMap({
         strokeLinejoin="round"
       />
       {heat && (
-        <g filter="url(#khoj-heat-blur)">
-          {dots.map((d, i) => (
-            <circle
-              key={`h${i}`}
-              cx={d.x}
-              cy={d.y}
-              r={d.level === "high" ? 22 : d.level === "medium" ? 15 : 11}
-              fill={dotColor[d.level]}
-              opacity={0.4}
-            />
-          ))}
+        <g>
+          {dots.map((d, i) => {
+            const rad = d.level === "high" ? 24 : d.level === "medium" ? 18 : 14;
+            const gradId = d.level === "high" ? "heat-high" : d.level === "medium" ? "heat-medium" : "heat-low";
+            return (
+              <circle
+                key={`h${i}`}
+                cx={d.x}
+                cy={d.y}
+                r={rad}
+                fill={`url(#${gradId})`}
+              />
+            );
+          })}
         </g>
       )}
       {dots.map((d, i) => (
@@ -95,33 +114,6 @@ export function IndiaMap({
           />
         </g>
       ))}
-      {showTooltip && (
-        <g>
-          <line
-            x1={78}
-            y1={214}
-            x2={96}
-            y2={196}
-            stroke="rgba(35,32,27,0.3)"
-            strokeWidth="1"
-          />
-          <rect
-            x={78}
-            y={168}
-            rx={8}
-            width={110}
-            height={44}
-            fill="#fdfaf4"
-            stroke="rgba(35,32,27,0.14)"
-          />
-          <text x={92} y={187} fontSize={12.5} fontWeight={600} fill="#23201b">
-            Maharashtra
-          </text>
-          <text x={92} y={202} fontSize={10.5} fill="#6c6659">
-            12,450 records
-          </text>
-        </g>
-      )}
     </svg>
   );
 }

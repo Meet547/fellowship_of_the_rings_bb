@@ -56,3 +56,25 @@ Work Log:
 Stage Summary:
 - Deliverable: pixel-faithful KHOJ frontend at src/app/page.tsx (single route, hash-based view routing), components in src/components/khoj/{ui,india-map,landing,auth,shell,dashboard,database,find,scan,report,searching,match}.tsx
 - Frontend-only: forms/nav wired client-side; real AI search, auth, and data persistence deferred per user request
+
+---
+Task ID: 7
+Agent: main (Super Z)
+Task: Complete and harden the frontend — audit every flow against the backend handoff, remove dishonest copy/fake actions, finish Database pagination, harden accessibility/security, and deliver the Phase 7 report (frontend only; no deploy).
+
+Work Log:
+- Verified GET /found live against the deployed API Gateway (dev): response = {source, count, items, next_cursor}; cursor chain returns a contiguous page 2 with no overlap; offset=99 is ignored (server is cursor-only); embedding columns never returned
+- Single API layer confirmed: fetch() only in src/lib/khoj/api.ts; browser calls via /api/proxy rewrite (next.config.ts); old src/app/api/route.ts deleted
+- Database page finished + hardened: cursor Load-More, end-of-records notice, skeleton/error/empty states, list↔grid, India-map heatmap, client-side filters, "X of Y loaded records shown"; source pinned to verified ZIPNET default
+- Honesty pass: voice tab (not connected), photo tab (image matching coming soon; "Ready to search" removed), report photo step (not uploaded/processed), scan page (camera comes soon), dashboard Scan card (photo ID upcoming); removed fake stats and mock PEOPLE/DB_STATS from data.ts
+- Match UX: View Full Report / Compare Images / Report as Incorrect → honest toasts; feedback is local-only with explanatory note; Request Contact Details notes it's not available yet; "Potential Match" + similarity-not-identity disclaimer preserved
+- Report flow now renders returned case_id (copyable), live search_status (no_searchable_information / awaiting_processing guidance), and returned matches with Match Score + disclaimer; copy changed to "received and checked against found-person records"
+- Missing-case normalization handles BOTH flat /found items and nested {candidate} matcher output (matcher nesting unverifiable — backend account 743976413697 inaccessible)
+- Dashboard greeting uses real Cognito name/initials via new src/lib/khoj/use-user.ts (hardcoded "M" avatar and generic greeting removed)
+- Accessibility: Field label↔control linkage via useId/cloneElement in ui.tsx; aria-labels on placeholder-only inputs (find textarea/photo, auth name/password/code); role="status" on searching progress rail
+- Security: NEXT_PUBLIC_* audited (public config only, no secrets); .env git-tracked noted for untrack recommendation; no exposed backend credentials anywhere
+- Verified: npx tsc --noEmit (clean), npx eslint src --max-warnings=0 (clean), npm run build (Next 16.1.3, success)
+
+Stage Summary:
+- Deliverable: hardened, contract-accurate frontend; live-verified cursor pagination; honest copy + disabled fake actions everywhere; report written to docs/phase-7-complete-and-harden-frontend.md
+- No backend changes, no deploy; remaining blocker = IAM access to backend account 743976413697 for full report→match E2E re-verification

@@ -97,7 +97,7 @@ function Hero({ navigate }: { navigate: Navigate }) {
             <Btn arrow onClick={() => navigate("auth")}>
               Report a Missing Person
             </Btn>
-            <Btn variant="outline" onClick={() => navigate("scan")}>
+            <Btn variant="outline" onClick={() => navigate("found")}>
               I Found Someone
             </Btn>
           </motion.div>
@@ -139,6 +139,10 @@ function Hero({ navigate }: { navigate: Navigate }) {
             <img
               src="/images/khoj-hero-detective.jpg"
               alt="A man in a fedora hat looking over the city"
+              fetchPriority="high"
+              decoding="async"
+              width={520}
+              height={520}
               className="mx-auto aspect-square w-full max-w-[520px] object-cover [mask-image:radial-gradient(closest-side,black_62%,transparent_100%)]"
             />
             <ScriptNote
@@ -308,9 +312,9 @@ function TwoWays({ navigate }: { navigate: Navigate }) {
             bg: "bg-sky",
             icon: <UsersRound size={22} strokeWidth={1.8} className="text-blueicon" />,
             title: "I Found Someone",
-            body: "Upload a photo and description. We'll help identify and connect them with support.",
+            body: "Share a description and where you found them. We'll check it against missing-person reports for potential matches.",
             color: "blue" as const,
-            to: "scan" as View,
+            to: "found" as View,
           },
         ].map((c, i) => (
           <Reveal key={c.title} delay={0.1 + i * 0.12}>
@@ -427,7 +431,7 @@ function DarkInterlude({ navigate }: { navigate: Navigate }) {
               <Btn variant="cream" arrow onClick={() => navigate("auth")}>
                 Report a Missing Person
               </Btn>
-              <Btn variant="outlineDark" onClick={() => navigate("scan")}>
+              <Btn variant="outlineDark" onClick={() => navigate("found")}>
                 I Found Someone
               </Btn>
             </div>

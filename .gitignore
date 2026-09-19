@@ -52,3 +52,11 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# local agent metadata and private handoff artifacts
+.agents/
+.aider-desk/
+.freebuff/
+Auris Token 2 Flat 4606.pdf
+KHOJ_Backend_Frontend_Handoff_2026.pdf
+KHOJ_Frontend_Integration_Notes.docx

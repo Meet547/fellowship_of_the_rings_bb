@@ -1,14 +1,13 @@
 "use client";
 
-import { Camera, CheckCircle2, FlipHorizontal, ImageUp } from "lucide-react";
-import { useRef, useState } from "react";
+import { Camera, CheckCircle2, ImageUp } from "lucide-react";
+import { useRef } from "react";
 import { ScriptNote, useToast } from "./ui";
 import { SCAN_TIPS } from "@/lib/khoj/data";
 import type { Navigate } from "@/lib/khoj/router";
 
 export default function Scan({ navigate }: { navigate: Navigate }) {
   const fileInput = useRef<HTMLInputElement>(null);
-  const [flipped, setFlipped] = useState(false);
   const toast = useToast();
   return (
     <div className="mx-auto max-w-[1120px] px-6 py-9">
@@ -16,8 +15,16 @@ export default function Scan({ navigate }: { navigate: Navigate }) {
         Scan &amp; Identify
       </h1>
       <p className="mt-1.5 max-w-[560px] text-[13px] leading-relaxed text-ink2">
-        Found someone who may be missing? Upload a clear photo and we&rsquo;ll search for
-        possible matches across multiple databases using AI.
+        Found someone who may be missing? Upload a clear photo — image identification is
+        coming soon. In the meantime, use{" "}
+        <button
+          type="button"
+          onClick={() => navigate("find")}
+          className="cursor-pointer underline underline-offset-2 hover:text-ink"
+        >
+          text search
+        </button>{" "}
+        to describe the person and search our database.
       </p>
 
       <div className="mt-7 grid items-start gap-6 lg:grid-cols-[1.05fr_0.85fr_280px]">
@@ -38,8 +45,8 @@ export default function Scan({ navigate }: { navigate: Navigate }) {
           </div>
           <input ref={fileInput} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(event) => {
             if (event.target.files?.[0]) {
-              toast(`${event.target.files[0].name} uploaded. Starting AI search.`);
-              navigate("searching");
+              toast("Image scan is coming soon. Please use text search in Find a Person.");
+              event.target.value = "";
             }
           }} />
         </button>
@@ -47,34 +54,14 @@ export default function Scan({ navigate }: { navigate: Navigate }) {
         {/* capture live */}
         <div>
           <div className="mb-3 text-[12.5px] font-semibold text-ink">Or capture live</div>
-          <div className="relative h-[248px] overflow-hidden rounded-[18px] border border-line bg-card">
-            { }
-            <img
-              src="/images/khoj-ramesh.jpg"
-              alt="Live camera preview of an elderly man"
-              loading="lazy"
-              className={`absolute inset-0 h-full w-full object-cover transition-transform ${flipped ? "-scale-x-100" : ""}`}
-            />
-            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/55 to-transparent px-4 pb-3.5 pt-10">
-              <span className="rounded-full bg-black/35 px-3 py-1.5 text-[10.5px] font-medium text-white backdrop-blur-sm">
-                Take Photo
-              </span>
-              <button
-                aria-label="Take photo"
-                onClick={() => navigate("searching")}
-                className="group relative flex size-11 cursor-pointer items-center justify-center"
-              >
-                <span className="absolute inset-0 rounded-full border-2 border-white/80 transition-transform duration-300 group-hover:scale-110" />
-                <span className="size-[30px] rounded-full bg-white transition-transform duration-300 group-active:scale-90" />
-              </button>
-              <button
-                aria-label="Flip camera"
-                onClick={() => setFlipped((value) => !value)}
-                className="cursor-pointer text-white/85 transition-colors hover:text-white"
-              >
-                <FlipHorizontal size={17} strokeWidth={1.9} />
-              </button>
-            </div>
+          <div className="relative flex h-[248px] flex-col items-center justify-center gap-3 overflow-hidden rounded-[18px] border border-dashed border-ink/20 bg-paper2 text-center">
+            <span className="flex size-14 items-center justify-center rounded-full border border-line bg-card text-ink3 shadow-sm">
+              <Camera size={22} strokeWidth={1.7} />
+            </span>
+            <p className="text-[13px] font-medium text-ink">Camera capture not available</p>
+            <p className="max-w-[200px] text-[11.5px] leading-relaxed text-ink3">
+              Live camera identification is coming soon.
+            </p>
           </div>
         </div>
 

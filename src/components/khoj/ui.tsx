@@ -3,13 +3,17 @@
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import {
+  cloneElement,
   createContext,
+  isValidElement,
   useContext,
   useEffect,
+  useId,
   useRef,
   useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type ReactElement,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
@@ -166,18 +170,26 @@ export function Field({
   required,
   children,
   className = "",
+  htmlFor,
 }: {
   label: string;
   required?: boolean;
   children: ReactNode;
   className?: string;
+  htmlFor?: string;
 }) {
+  const autoId = useId();
+  const id = htmlFor ?? autoId;
+  let control = children;
+  if (!htmlFor && isValidElement(children)) {
+    control = cloneElement(children as ReactElement<{ id?: string }>, { id });
+  }
   return (
     <div className={className}>
-      <label className="mb-[7px] block text-[12px] font-medium text-ink">
+      <label htmlFor={id} className="mb-[7px] block text-[12px] font-medium text-ink">
         {label} {required && <span className="text-rust">*</span>}
       </label>
-      {children}
+      {control}
     </div>
   );
 }
@@ -267,20 +279,21 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
-  /* failsafe: never leave content hidden if IO misses (headless/screenshot) */
   const [forced, setForced] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setForced(true), 3200);
+    if (inView) return;
+    const t = setTimeout(() => setForced(true), 2500);
     return () => clearTimeout(t);
-  }, []);
+  }, [inView]);
   const show = inView || forced;
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y }}
       animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
-      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
+      style={{ willChange: "transform, opacity" }}
     >
       {children}
     </motion.div>
@@ -314,19 +327,19 @@ export function MaskLine({
   const MTag = MOTION_TAGS[Tag];
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-8% 0px" });
-  /* failsafe: auto-reveal after 3.2s even if IO never fires */
   const [forced, setForced] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setForced(true), 3200);
+    if (inView) return;
+    const t = setTimeout(() => setForced(true), 2500);
     return () => clearTimeout(t);
-  }, []);
+  }, [inView]);
   const show = inView || forced;
   return (
     <span ref={ref} className={`-mb-[0.12em] block overflow-hidden pb-[0.12em] ${className}`}>
       <MTag
         initial={{ y: "110%" }}
         animate={show ? { y: "0%" } : { y: "110%" }}
-        transition={{ duration: 1.05, delay, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
         className="block will-change-transform"
       >
         {children}
@@ -343,7 +356,7 @@ export function CountUp({
   to,
   suffix = "",
   className = "",
-  duration = 1.8,
+  duration = 1.6,
 }: {
   to: number;
   suffix?: string;
@@ -357,9 +370,10 @@ export function CountUp({
   const text = useTransform(mv, (v) => Math.round(v).toLocaleString("en-US") + suffix);
 
   useEffect(() => {
-    const t = setTimeout(() => setForced(true), 3500);
+    if (inView) return;
+    const t = setTimeout(() => setForced(true), 2500);
     return () => clearTimeout(t);
-  }, []);
+  }, [inView]);
 
   useEffect(() => {
     if (!inView && !forced) return;

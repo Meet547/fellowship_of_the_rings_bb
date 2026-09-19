@@ -2,60 +2,143 @@
 
 import { motion } from "framer-motion";
 import {
-  Landmark,
+  BrainCircuit,
+  FileText,
+  ListFilter,
   Loader2,
   Mail,
-  Newspaper,
+  Search,
   Smartphone,
   UsersRound,
-  HeartHandshake,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Logo, ScriptNote } from "./ui";
 import { SEARCH_STAGES, WAIT_TIPS } from "@/lib/khoj/data";
 import type { Navigate } from "@/lib/khoj/router";
+import { useSearch } from "@/lib/khoj/search-context";
+import { useUserProfile } from "@/lib/khoj/use-user";
+import { searchByText, ApiError } from "@/lib/khoj/api";
 
 const STAGE_MS = 2100;
 
 const ORBIT_NODES = [
-  { icon: <Landmark size={19} strokeWidth={1.8} className="text-ink" />, label: "Government Databases", pos: "left-[6%] top-[16%]" },
-  { icon: <Newspaper size={19} strokeWidth={1.8} className="text-ink" />, label: "News & Media", pos: "right-[6%] top-[16%]" },
-  { icon: <HeartHandshake size={19} strokeWidth={1.8} className="text-ink" />, label: "NGO Records", pos: "left-[6%] bottom-[16%]" },
-  { icon: <UsersRound size={19} strokeWidth={1.8} className="text-ink" />, label: "Social Media", pos: "right-[6%] bottom-[16%]" },
+  { icon: <FileText size={19} strokeWidth={1.8} className="text-ink" />, label: "Description", pos: "left-[6%] top-[16%]" },
+  { icon: <Search size={19} strokeWidth={1.8} className="text-ink" />, label: "Search Records", pos: "right-[6%] top-[16%]" },
+  { icon: <BrainCircuit size={19} strokeWidth={1.8} className="text-ink" />, label: "Semantic Matching", pos: "left-[6%] bottom-[16%]" },
+  { icon: <ListFilter size={19} strokeWidth={1.8} className="text-ink" />, label: "Structured Matching", pos: "right-[6%] bottom-[16%]" },
 ];
 
-const TIP_ICONS: Record<string, React.ReactNode> = {
+const TIP_ICONS: Record<string, ReactNode> = {
   phone: <Smartphone size={15} strokeWidth={1.8} className="text-ink2" />,
   mail: <Mail size={15} strokeWidth={1.8} className="text-ink2" />,
   users: <UsersRound size={15} strokeWidth={1.8} className="text-ink2" />,
 };
 
+/** sessionStorage key used to persist the active query across hard refreshes. */
+const QUERY_SESSION_KEY = "khoj_search_query";
+
 export default function Searching({ navigate }: { navigate: Navigate }) {
+  const { textQuery, setSearchResults, setSearchError } = useSearch();
+  const profile = useUserProfile();
   const [stage, setStage] = useState(0);
   const [pct, setPct] = useState(4);
+  const [apiDone, setApiDone] = useState(false);
 
-  /* progress animation */
+  // Resolve the query: prefer the in-memory context value (set by Find), then fall
+  // back to sessionStorage (survives a hard refresh on #/searching).
+  const [displayQuery] = useState<string>(() => {
+    if (textQuery.trim()) {
+      // Persist to sessionStorage so a hard refresh can recover it.
+      try { sessionStorage.setItem(QUERY_SESSION_KEY, textQuery.trim()); } catch { /* ignore */ }
+      return textQuery.trim();
+    }
+    try { return sessionStorage.getItem(QUERY_SESSION_KEY) ?? ""; } catch { return ""; }
+  });
+  const calledRef = useRef(false);
+
+  // Safety guard: if no query exists after checking both sources, redirect back.
   useEffect(() => {
-    const t = setInterval(() => {
-      setPct((p) => (p >= 100 ? 100 : p + 1));
-    }, 130);
-    return () => clearInterval(t);
-  }, []);
+    if (!displayQuery.trim()) {
+      navigate("find");
+    }
+  }, [displayQuery, navigate]);
 
-  /* stages advance */
+  // Stage label advance (purely visual).
   useEffect(() => {
     if (stage >= SEARCH_STAGES.length) return;
     const t = setTimeout(() => setStage((s) => s + 1), STAGE_MS);
     return () => clearTimeout(t);
   }, [stage]);
 
-  /* navigate when done */
+  // Progress animation: 0 → 90 before API, held there until API responds.
   useEffect(() => {
-    if (pct >= 100 && stage >= SEARCH_STAGES.length) {
-      const t = setTimeout(() => navigate("match"), 900);
+    const t = setInterval(() => {
+      setPct((p) => {
+        if (p >= 90) { clearInterval(t); return 90; }
+        return p + 2;
+      });
+    }, 120);
+    return () => clearInterval(t);
+  }, []); // runs once on mount — pct setState updater is stable
+
+  // After API done, quickly finish 90 → 100.
+  useEffect(() => {
+    if (!apiDone) return;
+    const t = setInterval(() => {
+      setPct((p) => {
+        if (p >= 100) { clearInterval(t); return 100; }
+        return p + 5;
+      });
+    }, 40);
+    return () => clearInterval(t);
+  }, [apiDone]);
+
+  // Navigate to match once progress hits 100% and API has returned.
+  useEffect(() => {
+    if (pct >= 100 && apiDone) {
+      const t = setTimeout(() => navigate("match"), 700);
       return () => clearTimeout(t);
     }
-  }, [pct, stage, navigate]);
+  }, [pct, apiDone, navigate]);
+
+  // Real API call — fires once on mount using the snapshotted query.
+  // On completion (success or error) the sessionStorage entry is cleared so that
+  // the next intentional search starts fresh rather than replaying the old query.
+  useEffect(() => {
+    if (!displayQuery.trim()) return;
+    if (calledRef.current) return;
+    calledRef.current = true;
+
+    const controller = new AbortController();
+
+    const clearPersistedQuery = () => {
+      try { sessionStorage.removeItem(QUERY_SESSION_KEY); } catch { /* ignore */ }
+    };
+
+    searchByText(displayQuery, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          clearPersistedQuery();
+          setSearchResults(result);
+          setSearchError(null);
+          setApiDone(true);
+        }
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          clearPersistedQuery();
+          const msg =
+            err instanceof ApiError
+              ? err.message
+              : "Search failed. Please try again.";
+          setSearchError(msg);
+          setSearchResults(null);
+          setApiDone(true);
+        }
+      });
+
+    return () => controller.abort();
+  }, []); // runs once on mount — query snapshotted at component creation
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
@@ -76,8 +159,8 @@ export default function Searching({ navigate }: { navigate: Navigate }) {
               </button>
             ))}
           </nav>
-          <span className="flex size-9 items-center justify-center rounded-full bg-rust text-[12px] font-semibold text-paper2">
-            M
+          <span className="flex size-9 items-center justify-center rounded-full bg-rust text-[12px] font-semibold text-paper2 uppercase">
+            {profile.initial}
           </span>
         </div>
       </header>
@@ -150,31 +233,27 @@ export default function Searching({ navigate }: { navigate: Navigate }) {
               ))}
             </motion.div>
 
-            {/* center photo */}
+            {/* center: query preview */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                className="relative"
+                className="relative flex size-[128px] flex-col items-center justify-center rounded-full bg-card ring-4 ring-card shadow-[0_20px_50px_-20px_rgba(35,32,27,0.45)]"
               >
                 <span className="absolute -inset-2 rounded-full border border-ink/10 animate-breathe" />
-                { }
-                <img
-                  src="/images/khoj-ramesh.jpg"
-                  alt="Person being searched"
-                  loading="lazy"
-                  className="size-[128px] rounded-full object-cover ring-4 ring-card shadow-[0_20px_50px_-20px_rgba(35,32,27,0.45)]"
-                />
+                <span className="px-3 text-center text-[9.5px] leading-snug text-ink2 line-clamp-4">
+                  {displayQuery}
+                </span>
               </motion.div>
             </div>
           </div>
 
           {/* progress line */}
-          <div className="mt-6 flex items-center gap-2.5">
+          <div className="mt-6 flex items-center gap-2.5" role="status">
             <Loader2 size={15} className="animate-spin text-rust" />
             <span className="text-[13px] text-ink2">
-              Searching&hellip; <span className="font-medium text-ink tabular-nums">{pct}%</span> complete
+              Finding potential matches&hellip; <span className="font-medium text-ink tabular-nums">{pct}%</span> complete
             </span>
           </div>
           <div className="mt-3 h-[3px] w-56 overflow-hidden rounded-full bg-line2">
