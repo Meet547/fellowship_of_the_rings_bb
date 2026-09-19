@@ -239,23 +239,24 @@ export default function Report({ navigate }: { navigate: Navigate }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.contact) {
+    if (submitting) return;
+    if (!form.contact.trim()) {
       toast("Add a contact number so responders can reach you.");
       return;
     }
     setSubmitting(true);
     const payload: MissingCasePayload = {
-      name: form.name,
-      age: form.age,
-      gender: form.gender,
-      last_seen_location: form.location,
-      last_seen_date: form.date,
-      description: form.details,
-      ...(form.clothing ? { clothing: form.clothing } : {}),
+      name: form.name.trim(),
+      age: form.age.trim(),
+      gender: form.gender.trim(),
+      last_seen_location: form.location.trim(),
+      last_seen_date: form.date.trim(),
+      description: form.details.trim(),
+      ...(form.clothing.trim() ? { clothing: form.clothing.trim() } : {}),
       // Frontend field "marks" maps to backend field "distinctive_marks".
-      ...(form.marks ? { distinctive_marks: form.marks } : {}),
-      ...(form.medical ? { medical: form.medical } : {}),
-      contact: form.contact,
+      ...(form.marks.trim() ? { distinctive_marks: form.marks.trim() } : {}),
+      ...(form.medical.trim() ? { medical: form.medical.trim() } : {}),
+      contact: form.contact.trim(),
     };
     try {
       const result = await createMissingCase(payload);
