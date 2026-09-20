@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import { configureAmplify } from "@/lib/amplify";
 
@@ -24,11 +24,15 @@ export function useAuthState() {
     const checkSession = async (): Promise<boolean> => {
       try {
         const session = await fetchAuthSession();
-        if (session.tokens) return true;
-      } catch { /* proceed to user check */ }
+        if (session.tokens?.accessToken) return true;
+      } catch { /* attempt one forced token refresh below */ }
+
+      // getCurrentUser() can succeed from cached browser metadata even when no
+      // usable access token exists. Only mark the user authenticated after an
+      // actual access token is available for the protected backend APIs.
       try {
-        await getCurrentUser();
-        return true;
+        const refreshed = await fetchAuthSession({ forceRefresh: true });
+        return Boolean(refreshed.tokens?.accessToken);
       } catch {
         return false;
       }
@@ -110,4 +114,3 @@ export function useAuthState() {
 
   return status;
 }
-

@@ -51,7 +51,7 @@ const PAGE_LIMIT = 25;
 // ─── User-facing error messages ───────────────────────────────────────────────
 
 function userMessage(status: number): string {
-  if (status === 401) return "Please sign in again, or check that this report belongs to you.";
+  if (status === 401) return "Your sign-in session has expired. Please sign out and sign in again.";
   if (status === 429) return "Please wait a moment before trying again.";
   if (status === 400) return "Your request was invalid. Please check your inputs and try again.";
   if (status === 422)
@@ -62,11 +62,39 @@ function userMessage(status: number): string {
 
 // ─── Core fetch helper ────────────────────────────────────────────────────────
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const session = await fetchAuthSession();
+async function authHeaders(forceRefresh = false): Promise<Record<string, string>> {
+  const session = await fetchAuthSession({ forceRefresh });
   const token = session.tokens?.accessToken?.toString();
-  if (!token) throw new ApiError(401, "Please sign in again.");
+  if (!token) throw new ApiError(401, userMessage(401));
   return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+}
+
+/**
+ * Send an authenticated API request. Amplify normally refreshes an expired
+ * access token automatically, but browser tabs restored after a deployment can
+ * retain stale cached state. On a 401 we force one refresh and retry exactly
+ * once; the backend rejects the request before executing it, so this retry does
+ * not duplicate a successful write.
+ */
+async function authenticatedFetch(
+  input: string,
+  init: Omit<RequestInit, "headers">,
+): Promise<Response> {
+  let headers: Record<string, string>;
+  try {
+    headers = await authHeaders();
+  } catch {
+    headers = await authHeaders(true);
+  }
+
+  let response = await fetch(input, { ...init, headers });
+  if (response.status === 401) {
+    response = await fetch(input, {
+      ...init,
+      headers: await authHeaders(true),
+    });
+  }
+  return response;
 }
 
 async function apiFetch<T>(
@@ -74,9 +102,8 @@ async function apiFetch<T>(
   body: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
-  const res = await fetch(`${FETCH_BASE}${path}`, {
+  const res = await authenticatedFetch(`${FETCH_BASE}${path}`, {
     method: "POST",
-    headers: await authHeaders(),
     body: JSON.stringify(body),
     signal,
   });
@@ -108,9 +135,8 @@ async function apiGet<T>(
   const search = new URLSearchParams(query);
   const qs = search.toString();
 
-  const res = await fetch(`${FETCH_BASE}${path}${qs ? `?${qs}` : ""}`, {
+  const res = await authenticatedFetch(`${FETCH_BASE}${path}${qs ? `?${qs}` : ""}`, {
     method: "GET",
-    headers: await authHeaders(),
     signal,
   });
 
