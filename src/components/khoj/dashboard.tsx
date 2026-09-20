@@ -1,5 +1,6 @@
 "use client";
 
+import CaseDashboard from "./case-dashboard";
 import { motion } from "framer-motion";
 import {
   AudioWaveform,
@@ -34,7 +35,7 @@ const CARDS = [
     bg: "bg-sage",
     icon: <Camera size={21} strokeWidth={1.9} className="text-greenicon" />,
     title: "Scan & Identify",
-    body: "Photo identification is coming soon.",
+    body: "Read a missing-person poster and review the extracted details.",
     color: "green" as const,
     to: "scan" as const,
   },
@@ -54,6 +55,8 @@ export default function Dashboard({ navigate }: { navigate: Navigate }) {
           &ldquo;Log kho jaate hain, zimmedari nahi.&rdquo;
         </ScriptNote>
       </div>
+
+      <CaseDashboard />
 
       {/* action cards */}
       <div className="mt-8 grid gap-5 md:grid-cols-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import DraftInput from "./draft-input";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, ImageUp, Mic, Search } from "lucide-react";
 import { useRef, useState } from "react";
@@ -117,20 +118,7 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   className="flex min-h-[168px] flex-col items-center justify-center gap-3 text-center"
                 >
-                  <span className="flex size-14 items-center justify-center rounded-full bg-paper2 text-ink3">
-                    <Mic size={22} strokeWidth={1.7} />
-                  </span>
-                  <p className="text-[13px] font-medium text-ink">Voice search is not available yet</p>
-                  <p className="mt-0.5 max-w-[280px] text-[12px] leading-relaxed text-ink2">
-                    Use the Text Search tab to describe the person in Hindi or English.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setTab("text")}
-                    className="mt-1 rounded-full border border-line bg-card px-4 py-1.5 text-[12px] font-medium text-ink transition-colors hover:border-ink/35"
-                  >
-                    Switch to Text Search
-                  </button>
+                  <DraftInput navigate={navigate} mode="audio" />
                 </motion.div>
               )}
 
@@ -142,36 +130,7 @@ export default function Find({ navigate }: { navigate: Navigate }) {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <p className="text-[12.5px] leading-relaxed text-ink2">
-                    Photo search is not available yet. You can preview a photo below, and
-                    use text search to describe the person for now.
-                  </p>
-                  <button
-                    onClick={() => fileInput.current?.click()}
-                    className="mt-4 flex h-[150px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[14px] border border-dashed border-ink/25 bg-paper2 transition-all duration-300 hover:border-rust/45 hover:bg-peach/25"
-                  >
-                    <span className="flex size-12 items-center justify-center rounded-full bg-card text-ink2 shadow-sm">
-                      <ImageUp size={20} strokeWidth={1.7} />
-                    </span>
-                    <span className="text-[13px] font-medium text-ink">
-                      Click to upload a photo
-                    </span>
-                    <span className="text-[11px] text-ink3">JPG or PNG · not processed yet</span>
-                  </button>
-                  <input ref={fileInput} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(event) => {
-                    if (event.target.files?.[0]) {
-                      toast(`${event.target.files[0].name} selected — photo matching is coming soon. Use text search instead.`);
-                      setTab("text");
-                    }
-                  }} />
-                  <div className="mt-4 flex justify-end border-t border-line2 pt-4">
-                    <Btn
-                      variant="outline"
-                      onClick={() => toast("Image search is coming soon. Please use text search.")}
-                    >
-                      Search Now
-                    </Btn>
-                  </div>
+                  <DraftInput navigate={navigate} mode="image" />
                 </motion.div>
               )}
             </AnimatePresence>

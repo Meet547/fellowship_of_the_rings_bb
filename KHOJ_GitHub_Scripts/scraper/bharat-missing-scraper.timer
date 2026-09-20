@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Bharat Talaash missing-person ingestion every two days
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=2d
+RandomizedDelaySec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,3 +1,4 @@
+import { fetchAuthSession } from "aws-amplify/auth";
 import type {
   FoundReportPayload,
   FoundReportResponse,
@@ -50,6 +51,8 @@ const PAGE_LIMIT = 25;
 // ─── User-facing error messages ───────────────────────────────────────────────
 
 function userMessage(status: number): string {
+  if (status === 401) return "Please sign in again, or check that this report belongs to you.";
+  if (status === 429) return "Please wait a moment before trying again.";
   if (status === 400) return "Your request was invalid. Please check your inputs and try again.";
   if (status === 422)
     return "Not enough detail to search. Please add more information like age, gender, or location.";
@@ -59,6 +62,13 @@ function userMessage(status: number): string {
 
 // ─── Core fetch helper ────────────────────────────────────────────────────────
 
+async function authHeaders(): Promise<Record<string, string>> {
+  const session = await fetchAuthSession();
+  const token = session.tokens?.accessToken?.toString();
+  if (!token) throw new ApiError(401, "Please sign in again.");
+  return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+}
+
 async function apiFetch<T>(
   path: string,
   body: unknown,
@@ -66,7 +76,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const res = await fetch(`${FETCH_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify(body),
     signal,
   });
@@ -100,6 +110,7 @@ async function apiGet<T>(
 
   const res = await fetch(`${FETCH_BASE}${path}${qs ? `?${qs}` : ""}`, {
     method: "GET",
+    headers: await authHeaders(),
     signal,
   });
 
@@ -177,3 +188,29 @@ export async function getFoundReports(
 }
 
 export { PAGE_LIMIT };
+
+export type CaseSummary = { case_id: string; name?: string; status: string; monitoring_status?: string; monitoring_runs?: number; monitoring_limit?: number; next_check_at?: string; search_status?: string };
+export type SavedMatch = { match_id: string; case_id: string; found_id: string; my_side: "missing" | "found"; can_consent: boolean; missing_consent: string; found_consent: string; created_at: string; strong: boolean; score: { final_score?: number; structured_score?: number; data_completeness?: number; structured_details?: unknown }; missing_summary: Record<string, unknown>; found_summary: Record<string, unknown>; shared_contact?: { email?: string }; missing_email_state?: string; found_email_state?: string };
+export type DashboardData = { cases: CaseSummary[]; found_reports: { found_id: string; name?: string; search_status?: string }[]; matches: SavedMatch[]; stats: Record<string, number>; activity: { action: string; created_at: string }[]; email_mode: string };
+export const getDashboard = (signal?: AbortSignal) => apiGet<DashboardData>("/dashboard", undefined, signal);
+export const setCaseStatus = (case_id: string, action: string) => apiFetch("/case-status", { case_id, action });
+export const setMatchConsent = (match_id: string, decision: "accepted" | "declined") => apiFetch("/consent", { match_id, decision });
+export type ExtractedDraft = Record<string, string | number | null>;
+export async function extractDraft(input: { input_type: "text" | "image" | "audio"; text?: string; content_type?: string; data?: string }, signal?: AbortSignal): Promise<ExtractedDraft> {
+  const job = await apiFetch<{ job_id: string }>("/extract", input, signal);
+  for (let i = 0; i < 90; i++) {
+    await new Promise<void>((resolve, reject) => {
+      const onAbort = () => { clearTimeout(timer); reject(new DOMException("Cancelled", "AbortError")); };
+      const timer = setTimeout(() => { signal?.removeEventListener("abort", onAbort); resolve(); }, 2000);
+      if (signal?.aborted) onAbort(); else signal?.addEventListener("abort", onAbort, { once: true });
+    });
+    const status = await apiGet<{ status: string; draft?: ExtractedDraft }>("/jobs", { id: job.job_id }, signal);
+    if (status.status === "completed" && status.draft) return status.draft;
+    if (status.status === "failed") throw new Error("Could not read this input. Try a clearer image or recording, or enter the details manually.");
+  }
+  throw new Error("Extraction is taking longer than expected. Please try again later.");
+}
+export async function fileData(file: Blob): Promise<string> {
+  if (file.size > 3 * 1024 * 1024) throw new Error("Choose a file smaller than 3 MB.");
+  return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(",")[1]); reader.onerror = () => reject(new Error("Could not read file")); reader.readAsDataURL(file); });
+}

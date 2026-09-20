@@ -1,0 +1,32 @@
+"use client";
+import { useCallback, useEffect, useState } from "react";
+import { getDashboard, setCaseStatus, setMatchConsent, type DashboardData } from "@/lib/khoj/api";
+
+const button = "rounded-full border border-line bg-paper2 px-3 py-2 text-xs text-ink hover:bg-peach disabled:opacity-50";
+export default function CaseDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => { try { setData(await getDashboard()); setError(""); } catch (e) { setError(e instanceof Error ? e.message : "Could not load your cases."); } }, []);
+  useEffect(() => { void load(); }, [load]);
+  async function act(fn: () => Promise<unknown>) { setBusy(true); try { await fn(); await load(); } catch (e) { setError(e instanceof Error ? e.message : "Please try again."); } finally { setBusy(false); } }
+  return <section className="mt-8 space-y-5" aria-label="Your cases and matches">
+    <div className="flex items-center justify-between"><h2 className="font-serif text-xl text-ink">Your search, at a glance</h2><button className={button} disabled={busy} onClick={() => void load()}>Refresh</button></div>
+    {error && <p role="alert" className="text-sm text-rust">{error}</p>}
+    {!data && !error && <p role="status" className="text-sm text-ink2">Loading your cases…</p>}
+    {data && <>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">{Object.entries(data.stats).map(([key, value]) => <div key={key} className="rounded-[16px] border border-line bg-card p-4"><div className="font-serif text-3xl text-rust">{value}</div><div className="mt-1 text-xs capitalize text-ink2">{key.replaceAll("_", " ")}</div></div>)}</div>
+      <div className="rounded-[18px] border border-line bg-card p-5"><h3 className="font-serif text-lg">Missing cases</h3>
+        {!data.cases.length && <p className="mt-3 text-sm text-ink2">Your submitted cases and monitoring status will appear here.</p>}
+        {data.cases.map(c => <article key={c.case_id} className="border-b border-line2 py-4 last:border-0"><div className="flex flex-wrap justify-between gap-2"><strong className="text-sm">{c.name || "Missing person"}</strong><span className="text-xs capitalize text-rust">{c.status}</span></div><p className="mt-2 text-xs text-ink2">Search: {c.search_status || "unknown"} · Monitoring: {c.monitoring_status?.replaceAll("_", " ") || "not enabled"} · {c.monitoring_runs || 0}/{c.monitoring_limit || 7} free checks</p>{c.next_check_at && <p className="mt-1 text-xs text-ink3">Next check: {new Date(c.next_check_at).toLocaleString()}</p>}<div className="mt-3 flex flex-wrap gap-2">{[["satisfied", "Satisfied · close case"], ["not_satisfied", "Not satisfied · keep active"], ["stop", "Stop searching"], ["matched", "Mark for verification"]].map(([action,label]) => <button key={action} className={button} disabled={busy} onClick={() => void act(() => setCaseStatus(c.case_id, action))}>{label}</button>)}</div></article>)}
+        <p className="mt-3 text-xs text-ink3">Active cases check newly added records every 2 days, up to 7 free checks. Potential matches always need human verification.</p>
+      </div>
+      <div className="rounded-[18px] border border-line bg-card p-5"><h3 className="font-serif text-lg">Potential matches</h3><p className="mt-1 text-xs text-ink2">Similarity is a ranking signal, not proof of identity. Review with the appropriate authorities before arranging any handover.</p>
+        {!data.matches.length && <p className="mt-4 text-sm text-ink2">No potential matches yet. Pending searches may take a minute; refresh to check.</p>}
+        {data.matches.map(m => <article key={m.match_id} className="mt-4 rounded-xl bg-paper2 p-4"><div className="flex justify-between gap-3"><h4 className="font-medium text-sm">{String((m.my_side === "missing" ? m.found_summary : m.missing_summary).name || "Potential candidate")}</h4><span className="text-sm text-rust">Ranking score: {m.score.final_score?.toFixed(1) ?? "—"}/100</span></div><p className="mt-2 text-xs text-ink2">Source: {String((m.my_side === "missing" ? m.found_summary : m.missing_summary).source_name || "Report")} · Evidence completeness: {m.score.data_completeness ?? 0}%</p><details className="mt-2 text-xs"><summary className="cursor-pointer">Why this candidate?</summary><pre className="mt-2 whitespace-pre-wrap break-words text-ink2">{JSON.stringify(m.score.structured_details || {}, null, 2)}</pre></details>{m.can_consent ? <><p className="mt-3 text-xs">Your consent: {m.my_side === "missing" ? m.missing_consent : m.found_consent} · Other reporter: {m.my_side === "missing" ? m.found_consent : m.missing_consent}</p><div className="mt-3 flex flex-wrap gap-2"><button className={button} disabled={busy} onClick={() => void act(() => setMatchConsent(m.match_id, "accepted"))}>I consent to sharing my email</button><button className={button} disabled={busy} onClick={() => void act(() => setMatchConsent(m.match_id, "declined"))}>Decline / withdraw consent</button></div></> : <p className="mt-3 text-xs text-ink2">This is an official-source record. Verify it with the source authority; no reporter contact is available to share.</p>}{m.shared_contact?.email && <p className="mt-3 text-sm text-greenicon">Both reporters consented. Contact: <a className="underline" href={`mailto:${m.shared_contact.email}`}>{m.shared_contact.email}</a></p>}</article>)}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2"><div className="rounded-[18px] border border-line bg-card p-5"><h3 className="font-serif text-lg">Found reports</h3>{data.found_reports.length ? data.found_reports.map(r => <p key={r.found_id} className="mt-3 text-sm text-ink2">{r.name || "Found person"} · {r.search_status || "pending"}</p>) : <p className="mt-3 text-sm text-ink2">No found reports submitted yet.</p>}</div><div className="rounded-[18px] border border-line bg-card p-5"><h3 className="font-serif text-lg">Recent activity</h3>{data.activity.slice(0, 8).map((a, i) => <p key={i} className="mt-3 text-xs text-ink2"><span className="capitalize">{a.action.replaceAll("_", " ")}</span><br/>{new Date(a.created_at).toLocaleString()}</p>)}</div></div>
+      {data.email_mode === "sandbox" && <p className="text-xs text-ink3">Demo email delivery is limited to verified recipients. Matches are always available here.</p>}
+    </>}
+  </section>;
+}

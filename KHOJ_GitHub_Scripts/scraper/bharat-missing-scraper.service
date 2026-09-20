@@ -1,0 +1,16 @@
+[Unit]
+Description=Bharat Talaash recent ZIPNET missing-person ingestion
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ssm-user
+WorkingDirectory=/home/ssm-user/bharat-talaash
+Environment=AWS_DEFAULT_REGION=ap-southeast-2
+Environment=ZIPNET_S3_BUCKET=universe-test-1
+Environment=ZIPNET_MISSING_MAX_PAGES=10
+ExecStart=/home/ssm-user/bharat-talaash/.venv/bin/python /home/ssm-user/bharat-talaash/scrape_missing_persons.py
+TimeoutStartSec=1800
+NoNewPrivileges=true
+PrivateTmp=true
