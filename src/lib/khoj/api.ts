@@ -1,4 +1,5 @@
 import { fetchAuthSession } from "aws-amplify/auth";
+import { configureAmplify } from "@/lib/amplify";
 import type {
   FoundReportPayload,
   FoundReportResponse,
@@ -62,38 +63,72 @@ function userMessage(status: number): string {
 
 // ─── Core fetch helper ────────────────────────────────────────────────────────
 
-async function authHeaders(forceRefresh = false): Promise<Record<string, string>> {
-  const session = await fetchAuthSession({ forceRefresh });
-  const token = session.tokens?.accessToken?.toString();
-  if (!token) throw new ApiError(401, userMessage(401));
+/**
+ * Reads the current access token from Amplify.
+ * Returns null instead of throwing when no token is available yet — callers
+ * decide how many times/how long to retry before surfacing a user-facing
+ * "session expired" message. Throwing 401 straight from here was the bug:
+ * a transient/cold Amplify session read (e.g. first paint before Cognito has
+ * finished hydrating) looked identical to a real backend rejection.
+ */
+async function tryGetToken(forceRefresh = false): Promise<string | null> {
+  try {
+    const session = await fetchAuthSession({ forceRefresh });
+    return session.tokens?.accessToken?.toString() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function authHeadersFromToken(token: string): Record<string, string> {
   return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+}
+
+const TOKEN_RETRY_DELAYS_MS = [0, 300, 800];
+
+/**
+ * Resolves an access token, retrying a few times with short delays before
+ * giving up. This covers the common cold-start race where a component calls
+ * the API before Amplify has finished configuring or restoring the session
+ * (e.g. landing directly on a deep link, or a fast client-side navigation).
+ * Only after every attempt fails do we treat it as "no session" and throw the
+ * 401 the UI shows as "sign in again".
+ */
+async function resolveToken(): Promise<string> {
+  configureAmplify();
+  for (let i = 0; i < TOKEN_RETRY_DELAYS_MS.length; i++) {
+    const delay = TOKEN_RETRY_DELAYS_MS[i];
+    if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+    const forceRefresh = i > 0; // first attempt uses cached session; later ones force a refresh
+    const token = await tryGetToken(forceRefresh);
+    if (token) return token;
+  }
+  throw new ApiError(401, userMessage(401));
 }
 
 /**
  * Send an authenticated API request. Amplify normally refreshes an expired
  * access token automatically, but browser tabs restored after a deployment can
- * retain stale cached state. On a 401 we force one refresh and retry exactly
- * once; the backend rejects the request before executing it, so this retry does
- * not duplicate a successful write.
+ * retain stale cached state, and a page can call this before Amplify has
+ * finished restoring the session on first load. We resolve the token with
+ * retries (resolveToken) before the request, and if the backend itself still
+ * returns 401 (token really is invalid/expired), we force one refresh and
+ * retry exactly once; the backend rejects the request before executing it, so
+ * this retry does not duplicate a successful write.
  */
 async function authenticatedFetch(
   input: string,
   init: Omit<RequestInit, "headers">,
 ): Promise<Response> {
-  let headers: Record<string, string>;
-  try {
-    headers = await authHeaders();
-  } catch {
-    headers = await authHeaders(true);
+  const token = await resolveToken();
+  let response = await fetch(input, { ...init, headers: authHeadersFromToken(token) });
+
+  if (response.status === 401) {
+    const refreshed = await tryGetToken(true);
+    if (!refreshed) throw new ApiError(401, userMessage(401));
+    response = await fetch(input, { ...init, headers: authHeadersFromToken(refreshed) });
   }
 
-  let response = await fetch(input, { ...init, headers });
-  if (response.status === 401) {
-    response = await fetch(input, {
-      ...init,
-      headers: await authHeaders(true),
-    });
-  }
   return response;
 }
 
